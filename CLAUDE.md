@@ -6,12 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a dataset generation project for a mini trade game, designed to be hosted as a Hugging Face Dataset. The dataset trains models to simulate NPC merchant behavior in trading scenarios.
 
+**Language Requirement**: All examples must be in Traditional Chinese (zh-TW). Player input and NPC messages should use Traditional Chinese characters.
+
 ## Data Synthesis Workflow
 
 Data synthesis is GitHub issue-driven:
 1. Create an issue with instructions to generate a new example
-2. Run Claude Code Action to generate the example
-3. Examples are added to `train.csv` or `test.csv`
+2. Tag @claude in the issue body or title to trigger the GitHub Action
+3. Claude Code Action generates the example and adds it to `train.csv` or `test.csv`
+
+When adding examples to CSV files, append new rows with incrementing IDs. Use proper CSV escaping for JSON output (double quotes must be escaped as `""`).
 
 ## Dataset Schema
 
@@ -83,6 +87,3 @@ You must respond with a JSON object with the following format:
 }
 ```
 
-## Validation
-
-Use `validation.rb` (Ruby script) to validate generated outputs against the schema and game rules.
