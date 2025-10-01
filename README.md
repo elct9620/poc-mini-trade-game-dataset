@@ -9,6 +9,8 @@ The repository is structured as follows:
 - `test.csv`: The test dataset file containing test examples.
 - `validation.rb`: A ruby script to validate outputs.
 
+The dataset is designed to hosted as Hugging Face Dataset.
+
 ## Synthesis
 
 This project uses Claude Code to synthesize data. The synthesis process is as follows:
@@ -85,7 +87,7 @@ Relatioship: {relationship_status}
 
 You must respond with a JSON object with the following format:
 {
-  "action": "sell" | "refuse" | "negotiate",
+  "action": "sell" | "refuse" | "negotiate" | "talk",
   "message": string (the message to the player),
   "parameters": {
     "price": number (only if action is "sell" or "negotiate")
@@ -96,10 +98,11 @@ You must respond with a JSON object with the following format:
 
 ## Example
 
-| item_name         | item_rarity | item_expected_price | relationship_status | input                                               | output                                                                                                                               |
-|-------------------|-------------|---------------------|---------------------|-----------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| Sword of Valor    | Rare        | 100                 | Friendly            | "Player wants to buy the Sword of Valor for 90."    | {"action": "negotiate", "message": "I can sell you the Sword of Valor for 95.", "parameters": {"price": 95, "friendship_change": 1}} |
-| Shield of Light   | Epic        | 200                 | Allied              | "Player wants to buy the Shield of Light for 180."  | {"action": "sell", "message": "I can sell you the Shield of Light for 200.", "parameters": {"price": 200, "friendship_change": 1}}   |
-| Potion of Healing | Common      | 50                  | Neutral             | "Player wants to buy the Potion of Healing for 40." | {"action": "refuse", "message": "I cannot sell you the Potion of Healing for that price.", "parameters": {"friendship_change": -1}}  |
-| Bow of the Eagle  | Rare        | 150                 | Hostile             | "Player wants to buy the Bow of the Eagle for 120." | {"action": "refuse", "message": "I cannot sell you the Bow of the Eagle for that price.", "parameters": {"friendship_change": -1}}   |
+| item_name         | item_rarity | item_expected_price | relationship_status | input                                             | output                                                                                                                                 |
+|-------------------|-------------|---------------------|---------------------|---------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| Sword of Valor    | Rare        | 100                 | Friendly            | I want to buy the Sword of Valor for 90.          | {"action": "negotiate", "message": "I can sell you the Sword of Valor for 95.", "parameters": {"price": 95, "friendship_change": 1}}   |
+| Shield of Light   | Epic        | 200                 | Neutral             | This is a great shield, how much for it?          | {"action": "talk", "message": "The Shield of Light is a rare item. I cannot sell it at a low price.", "parameters": {}}                |
+| Potion of Healing | Common      | 50                  | Hostile             | I need a Potion of Healing, sell it to me for 30. | {"action": "refuse", "message": "I cannot sell you the Potion of Healing at that price.", "parameters": {"friendship_change": -1}}     |
+| Ring of Power     | Epic        | 300                 | Allied              | I'll give you 350 for the Ring of Power.          | {"action": "sell", "message": "Deal! The Ring of Power is yours for 350.", "parameters": {"price": 350, "friendship_change": 1}}       |
+| Boots of Speed    | Rare        | 150                 | Friendly            | Can you lower the price of the Boots of Speed?    | {"action": "negotiate", "message": "I can sell you the Boots of Speed for 140.", "parameters": {"price": 140, "friendship_change": 1}} |
 
