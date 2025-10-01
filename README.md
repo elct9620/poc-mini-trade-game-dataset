@@ -2,6 +2,10 @@
 
 This is proof of concept to create a dataset for a mini trade game.
 
+## Language
+
+The dataset is designed to Traditional Chinese (zh-TW) all examples should be in Traditional Chinese.
+
 ## Structure
 
 The repository is structured as follows:
@@ -98,11 +102,11 @@ You must respond with a JSON object with the following format:
 
 ## Example
 
-| item_name         | item_rarity | item_expected_price | relationship_status | input                                             | output                                                                                                                                 |
-|-------------------|-------------|---------------------|---------------------|---------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
-| Sword of Valor    | Rare        | 100                 | Friendly            | I want to buy the Sword of Valor for 90.          | {"action": "negotiate", "message": "I can sell you the Sword of Valor for 95.", "parameters": {"price": 95, "friendship_change": 1}}   |
-| Shield of Light   | Epic        | 200                 | Neutral             | This is a great shield, how much for it?          | {"action": "talk", "message": "The Shield of Light is a rare item. I cannot sell it at a low price.", "parameters": {}}                |
-| Potion of Healing | Common      | 50                  | Hostile             | I need a Potion of Healing, sell it to me for 30. | {"action": "refuse", "message": "I cannot sell you the Potion of Healing at that price.", "parameters": {"friendship_change": -1}}     |
-| Ring of Power     | Epic        | 300                 | Allied              | I'll give you 350 for the Ring of Power.          | {"action": "sell", "message": "Deal! The Ring of Power is yours for 350.", "parameters": {"price": 350, "friendship_change": 1}}       |
-| Boots of Speed    | Rare        | 150                 | Friendly            | Can you lower the price of the Boots of Speed?    | {"action": "negotiate", "message": "I can sell you the Boots of Speed for 140.", "parameters": {"price": 140, "friendship_change": 1}} |
+| item_name | item_rarity | item_expected_price | relationship_status | input                        | output                                                                                                                      |
+|-----------|-------------|---------------------|---------------------|------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| 勇者之劍  | Rare        | 100                 | Friendly            | 我想用 90 元買勇者之劍。     | {"action": "negotiate", "message": "我可以用 95 元賣給你勇者之劍。", "parameters": {"price": 95, "friendship_change": 1}}   |
+| 光明之盾  | Epic        | 200                 | Neutral             | 這個盾牌不錯,多少錢?         | {"action": "talk", "message": "光明之盾是稀有物品,我不能低價出售。", "parameters": {}}                                      |
+| 治療藥水  | Common      | 50                  | Hostile             | 我需要治療藥水,30 元賣給我。 | {"action": "refuse", "message": "我不能用那個價格賣給你治療藥水。", "parameters": {"friendship_change": -1}}                |
+| 力量戒指  | Epic        | 300                 | Allied              | 我出 350 元買力量戒指。      | {"action": "sell", "message": "成交!力量戒指是你的了,350 元。", "parameters": {"price": 350, "friendship_change": 1}}       |
+| 疾風之靴  | Rare        | 150                 | Friendly            | 疾風之靴可以便宜一點嗎?      | {"action": "negotiate", "message": "我可以用 140 元賣給你疾風之靴。", "parameters": {"price": 140, "friendship_change": 1}} |
 
