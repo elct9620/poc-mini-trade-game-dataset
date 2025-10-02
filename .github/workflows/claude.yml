@@ -30,6 +30,10 @@ jobs:
         with:
           fetch-depth: 1
 
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
