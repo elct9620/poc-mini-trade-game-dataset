@@ -3,10 +3,15 @@
 require 'csv'
 require 'json'
 
-# link:docs/features/validation.md
+##
+# # CsvValidator
 # Validates CSV files containing training data for the mini trade game dataset.
 # Ensures that the output column contains valid JSON with proper structure
 # and game mechanics constraints.
+#
+# ## Reference
+# - [docs/features/validation.md](docs/features/validation.md)
+##
 module CsvValidator
   VALID_ACTIONS = ['sell', 'refuse', 'negotiate', 'talk'].freeze
   FRIENDSHIP_RANGE = (-10..10).freeze
