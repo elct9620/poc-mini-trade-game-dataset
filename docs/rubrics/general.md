@@ -8,11 +8,11 @@ Following are the criteria used to evaluate the quality of Ruby file, review ste
 
 ### Documentation (1 points)
 
-The implementation should include clear and concise documentation comments in RDoc markdown style.
+The implementation should include clear and concise documentation comments in RDoc style.
 
 ```ruby
 ##
-# # Validator
+# = Validator
 # A class responsible for validating data inputs.
 ##
 class Validator
@@ -20,7 +20,7 @@ class Validator
 end
 ```
 
-- Use RDoc markdown style comments for class/module/method documentation.
+- Use RDoc style comments for class/module/method documentation, the `@tag` style is not allowed.
 - Keep comments concise and relevant.
 - Only `lib/` is required to have documentation comments.
 
@@ -30,11 +30,11 @@ Each implementation is related to a specific specification document or issue, th
 
 ```ruby
 ##
-# # Validator
+# = Validator
 # A class responsible for validating data inputs.
 #
-# ## Reference
-# - [docs/features/validation.md](docs/features/validation.md)
+# == Reference
+# - {docs/features/validation.md}(docs/features/validation.md)
 ##
 class Validator
   ...
@@ -48,4 +48,3 @@ end
 ## Scoring
 
 Each criterion only get the point when it is fully satisfied, otherwise get 0 point.
-
