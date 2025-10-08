@@ -11,7 +11,7 @@ The dataset is designed to Traditional Chinese (zh-TW) all examples should be in
 The repository is structured as follows:
 - `train.csv`: The main dataset file containing training examples.
 - `test.csv`: The test dataset file containing test examples.
-- `validation.rb`: A ruby script to validate outputs.
+- `bin/validation`: A ruby script to validate outputs.
 
 The dataset is designed to hosted as Hugging Face Dataset.
 

@@ -87,3 +87,29 @@ You must respond with a JSON object with the following format:
 }
 ```
 
+## Development Commands
+
+### Testing
+```bash
+# Run all tests
+bundle exec rspec
+
+# Install dependencies
+bundle install
+```
+
+### Validation
+```bash
+# Validate CSV files
+bundle exec ruby bin/validate train.csv
+bundle exec ruby bin/validate test.csv
+```
+
+The validation script checks:
+- JSON validity in the `output` column
+- Valid action types (sell, refuse, negotiate, talk)
+- Price > 0 for sell/negotiate actions
+- Friendship values between -10 and 10
+
+Exit code 0 means valid data; exit code 1 with error messages indicates issues.
+
