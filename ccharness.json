@@ -7,6 +7,16 @@
       "name": "Testing",
       "pattern": "spec/.*\\_spec\\.rb$",
       "path": "docs/rubrics/testing.md"
+    },
+    {
+      "name": "General",
+      "pattern": ".*\\.rb$",
+      "path": "docs/rubrics/general.md"
+    },
+    {
+      "name": "Executable",
+      "pattern": "bin/.*",
+      "path": "docs/rubrics/executable.md"
     }
   ]
 }
