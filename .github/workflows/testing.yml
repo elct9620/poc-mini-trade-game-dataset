@@ -22,3 +22,6 @@ jobs:
 
     - name: Run tests
       run: bundle exec rspec
+
+    - name: Validate train.csv
+      run: bundle exec ruby bin/validate train.csv
