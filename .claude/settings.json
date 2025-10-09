@@ -1,4 +1,10 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(bundle exec rspec:*)",
+      "Bash(bundle exec ruby bin/validate:*)"
+    ]
+  },
   "hooks": {
     "PostToolUse": [
       {
@@ -10,11 +16,6 @@
           }
         ]
       }
-    ]
-  },
-  "permissions": {
-    "allow": [
-      "Bash(bundle exec rspec:*)"
     ]
   }
 }
