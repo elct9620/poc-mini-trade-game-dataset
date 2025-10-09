@@ -48,8 +48,10 @@ module Validator
       case rarity
       when 'Common'
         validate_common_price(price, expected_price, relationship)
-      when 'Rare', 'Epic'
-        validate_rare_epic_price(price, expected_price, rarity, relationship)
+      when 'Rare'
+        validate_rare_price(price, expected_price, relationship)
+      when 'Epic'
+        validate_epic_price(price, expected_price, relationship)
       end
     end
 
@@ -69,11 +71,36 @@ module Validator
       raise ValidationError, "Price #{price} is below the minimum allowed price for Common rarity with #{relationship} relationship"
     end
 
-    # Validates price for Rare and Epic rarity items.
-    def validate_rare_epic_price(price, expected_price, rarity, relationship)
-      return if price >= expected_price
+    # Validates price for Rare rarity items.
+    def validate_rare_price(price, expected_price, relationship)
+      case relationship
+      when 'Hostile'
+        return if price >= expected_price * 1.5
+      when 'Neutral'
+        return if price >= expected_price
+      when 'Friendly'
+        return if price >= expected_price
+      when 'Allied'
+        return if price > 0
+      end
 
-      raise ValidationError, "Price #{price} is below the minimum allowed price for #{rarity} rarity with #{relationship} relationship"
+      raise ValidationError, "Price #{price} is below the minimum allowed price for Rare rarity with #{relationship} relationship"
+    end
+
+    # Validates price for Epic rarity items.
+    def validate_epic_price(price, expected_price, relationship)
+      case relationship
+      when 'Hostile'
+        return if price >= expected_price * 2.0
+      when 'Neutral'
+        return if price >= expected_price * 1.2
+      when 'Friendly'
+        return if price >= expected_price
+      when 'Allied'
+        return if price > 0
+      end
+
+      raise ValidationError, "Price #{price} is below the minimum allowed price for Epic rarity with #{relationship} relationship"
     end
   end
 end
