@@ -87,29 +87,77 @@ You must respond with a JSON object with the following format:
 }
 ```
 
+## Architecture
+
+The codebase follows a modular validation architecture with separation of concerns:
+
+**Structure:**
+```
+|- bin/
+    |- validate              # CLI entrypoint script
+|- lib/
+    |- validator/
+        |- json_syntax.rb    # JSON syntax validation
+        |- schema_validator.rb # Schema and business rules validation
+    |- dataset.rb            # Dataset CSV loader
+    |- validation.rb         # Validation usecase orchestrator
+|- spec/                     # RSpec tests mirror lib/ structure
+|- docs/features/            # Feature documentation with acceptance criteria
+```
+
+**Design Pattern:**
+- **Dataset** (`lib/dataset.rb`): Loads and parses CSV files
+- **Validators** (`lib/validator/*.rb`): Each validator inherits from `BaseValidator` and implements `validate(row)` method
+  - Raises `ValidationError` with descriptive messages on failure
+  - Returns `true` on success
+- **Usecase** (`lib/validation.rb`): Uses dependency injection to orchestrate validators
+  - Accepts dataset and validators array in constructor
+  - Iterates through rows, applies all validators
+  - Collects and returns error messages
+
+**Principles:**
+- Dependency injection for loose coupling
+- Single responsibility per validator class
+- Simple data structures (arrays, hashes)
+- Early failure with descriptive error messages
+
 ## Development Commands
 
-### Testing
+### Setup
 ```bash
-# Run all tests
-bundle exec rspec
-
 # Install dependencies
 bundle install
 ```
+
+### Testing
+```bash
+# Run all tests with coverage
+bundle exec rspec
+
+# Run specific test file
+bundle exec rspec spec/lib/csv_validator_spec.rb
+
+# Run single test by line number
+bundle exec rspec spec/lib/csv_validator_spec.rb:42
+```
+
+Test coverage reports are generated in `coverage/` using SimpleCov.
 
 ### Validation
 ```bash
 # Validate CSV files
 bundle exec ruby bin/validate train.csv
 bundle exec ruby bin/validate test.csv
+
+# Validate any CSV file
+bundle exec ruby bin/validate path/to/file.csv
 ```
 
-The validation script checks:
-- JSON validity in the `output` column
-- Valid action types (sell, refuse, negotiate, talk)
+**Validation checks:**
+- JSON validity in `output` column
+- Valid action types: sell, refuse, negotiate, talk
 - Price > 0 for sell/negotiate actions
-- Friendship values between -10 and 10
+- Friendship change between -10 and 10
 
-Exit code 0 means valid data; exit code 1 with error messages indicates issues.
+Exit code 0 = valid; exit code 1 = errors with detailed messages.
 
