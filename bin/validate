@@ -5,7 +5,10 @@
 # Command-line tool to validate CSV files for the mini trade game dataset.
 # Ensures JSON validity and game mechanics constraints.
 
-require_relative '../lib/csv_validator'
+require_relative '../lib/dataset'
+require_relative '../lib/validation'
+require_relative '../lib/validator/json_syntax'
+require_relative '../lib/validator/schema_validator'
 
 if ARGV.empty?
   puts "Usage: bundle exec ruby bin/validate path/to/your/file.csv"
@@ -19,7 +22,14 @@ unless File.exist?(file_path)
   exit 1
 end
 
-errors = CsvValidator.validate(file_path)
+dataset = Dataset.new(file_path)
+validators = [
+  Validator::JsonSyntax.new,
+  Validator::SchemaValidator.new
+]
+validation = Validation.new(dataset, validators)
+
+errors = validation.execute
 
 if errors.empty?
   exit 0
