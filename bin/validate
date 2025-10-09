@@ -9,6 +9,10 @@ require_relative '../lib/dataset'
 require_relative '../lib/validation'
 require_relative '../lib/validator/json_syntax'
 require_relative '../lib/validator/schema_validator'
+require_relative '../lib/validator/rarity_validator'
+require_relative '../lib/validator/relationship_validator'
+require_relative '../lib/validator/expected_price_validator'
+require_relative '../lib/validator/price_range_validator'
 
 if ARGV.empty?
   puts "Usage: bundle exec ruby bin/validate path/to/your/file.csv"
@@ -24,8 +28,12 @@ end
 
 dataset = Dataset.new(file_path)
 validators = [
+  Validator::RarityValidator.new,
+  Validator::RelationshipValidator.new,
+  Validator::ExpectedPriceValidator.new,
   Validator::JsonSyntax.new,
-  Validator::SchemaValidator.new
+  Validator::SchemaValidator.new,
+  Validator::PriceRangeValidator.new
 ]
 validation = Validation.new(dataset, validators)
 
