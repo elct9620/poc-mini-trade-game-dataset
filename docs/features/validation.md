@@ -32,6 +32,58 @@ Row 8: Friendship value must be between -10 and 10
 
 The `output` column must contain valid JSON.
 
+### JSON Schema
+
+The JSON in the `output` column always contains the following fields:
+
+- `action` - enum: `sell`, `refuse`, `negotiate`, `talk`
+- `message` - string
+- `parameters` - object
+
+#### Trade Parameters Object
+
+When the `action` is `sell` or `negotiate`, the `parameters` object must contain:
+
+- `price` - number, must be greater than 0
+
+#### Talk/Refuse Parameters Object
+
+When the `action` is `talk` or `refuse`, the `parameters` object can be empty or omitted.
+
+#### Friendship Change
+
+The `friendship_change` field in the `parameters` object must be a number between -10 and 10.
+
+### Rarity
+
+The `item_rarity` column must be one of the following values:
+
+- `Common`
+- `Rare`
+- `Epic`
+
+### Relationship Status
+
+The `relationship_status` column must be one of the following values:
+
+- `Hostile`
+- `Neutral`
+- `Friendly`
+- `Allied`
+
+### Price Validity
+
+The `item_expected_price` column must be a number greater than 0.
+
+In the `output` JSON, if the `action` is `sell` or `negotiate`, the `price` in the `parameters` object must in a valid range based on the `item_rarity` and `relationship_status`:
+
+| Rarity | Relationship Status | Minimum Price Condition       |
+|--------|---------------------|-------------------------------|
+| Common | Hostile             | price > expected_price * 1.2  |
+| Common | Neutral             | price >= expected_price       |
+| Common | Friendly            | price >= expected_price * 0.8 |
+| Common | Allied              | price > 0                     |
+
 ## Acceptance Criteria
 
 - `bin/validate` command exists and is executable.
