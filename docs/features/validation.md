@@ -83,6 +83,14 @@ In the `output` JSON, if the `action` is `sell` or `negotiate`, the `price` in t
 | Common | Neutral             | price >= expected_price       |
 | Common | Friendly            | price >= expected_price * 0.8 |
 | Common | Allied              | price > 0                     |
+| Rare   | Hostile             | price >= expected_price * 1.5  |
+| Rare   | Neutral             | price >= expected_price       |
+| Rare   | Friendly            | price >= expected_price       |
+| Rare   | Allied              | price > 0                     |
+| Epic   | Hostile             | price >= expected_price * 2.0  |
+| Epic   | Neutral             | price >= expected_price * 1.2  |
+| Epic   | Friendly            | price >= expected_price       |
+| Epic   | Allied              | price > 0                     |
 
 ## Acceptance Criteria
 
