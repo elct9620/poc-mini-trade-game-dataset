@@ -45,6 +45,14 @@ end
 - Remove any references to non-existent documents or issues.
 - The document's requirements is prior to the code implementation.
 
+## Testing Coverage (1 points)
+
+The implementation should include comprehensive tests to ensure code quality and reliability.
+
+- Each class/module should have corresponding test files in the `spec/` directory.
+- Testing based on requirements, not implementation details.
+- Describe behavior with `describe` and `context` blocks in RSpec.
+
 ## Scoring
 
 Each criterion only get the point when it is fully satisfied, otherwise get 0 point.
