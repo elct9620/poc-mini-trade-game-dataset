@@ -15,7 +15,7 @@ module Validator
   ##
   class SchemaValidator < BaseValidator
     VALID_ACTIONS = ['sell', 'refuse', 'negotiate', 'talk'].freeze
-    FRIENDSHIP_RANGE = (-10..10).freeze
+    FRIENDSHIP_RANGE = (-3..3).freeze
 
     # Validates the JSON structure and business rules.
     #
@@ -66,7 +66,7 @@ module Validator
       return unless friendship
       return if FRIENDSHIP_RANGE.cover?(friendship)
 
-      raise ValidationError, "Friendship value must be between -10 and 10"
+      raise ValidationError, "Friendship value must be between -3 and 3"
     end
   end
 end

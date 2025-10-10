@@ -72,29 +72,29 @@ RSpec.describe Validator::SchemaValidator do
     end
 
     context 'when friendship is below minimum' do
-      let(:row) { CSV::Row.new(['output'], ['{"action":"refuse","message":"No","parameters":{"friendship_change":-11}}']) }
+      let(:row) { CSV::Row.new(['output'], ['{"action":"refuse","message":"No","parameters":{"friendship_change":-4}}']) }
 
       it 'is expected to raise ValidationError' do
-        expect { validation_result }.to raise_error(ValidationError, 'Friendship value must be between -10 and 10')
+        expect { validation_result }.to raise_error(ValidationError, 'Friendship value must be between -3 and 3')
       end
     end
 
     context 'when friendship is above maximum' do
-      let(:row) { CSV::Row.new(['output'], ['{"action":"sell","message":"Thanks","parameters":{"price":50,"friendship_change":11}}']) }
+      let(:row) { CSV::Row.new(['output'], ['{"action":"sell","message":"Thanks","parameters":{"price":50,"friendship_change":4}}']) }
 
       it 'is expected to raise ValidationError' do
-        expect { validation_result }.to raise_error(ValidationError, 'Friendship value must be between -10 and 10')
+        expect { validation_result }.to raise_error(ValidationError, 'Friendship value must be between -3 and 3')
       end
     end
 
     context 'when friendship is at minimum boundary' do
-      let(:row) { CSV::Row.new(['output'], ['{"action":"refuse","message":"No","parameters":{"friendship_change":-10}}']) }
+      let(:row) { CSV::Row.new(['output'], ['{"action":"refuse","message":"No","parameters":{"friendship_change":-3}}']) }
 
       it { is_expected.to be true }
     end
 
     context 'when friendship is at maximum boundary' do
-      let(:row) { CSV::Row.new(['output'], ['{"action":"sell","message":"Here","parameters":{"price":50,"friendship_change":10}}']) }
+      let(:row) { CSV::Row.new(['output'], ['{"action":"sell","message":"Here","parameters":{"price":50,"friendship_change":3}}']) }
 
       it { is_expected.to be true }
     end
