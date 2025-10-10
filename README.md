@@ -1,15 +1,17 @@
 ---
 language:
+- zh
+language_bcp47:
 - zh-TW
 task_categories:
 - text-generation
-- conversational
 tags:
 - game
 - trading
 - npc-behavior
 - json-output
 - synthetic
+- conversational
 pretty_name: Mini Trade Game NPC Dataset
 size_categories:
 - n<1K
