@@ -52,7 +52,9 @@ When the `action` is `talk` or `refuse`, the `parameters` object can be empty or
 
 #### Friendship Change
 
-The `friendship_change` field in the `parameters` object must be a number between -10 and 10.
+This value represents the change in friendship points based on the user's action. It should between -3 and +3.
+
+> In training data, the actual friendship value is not provided, only the change in friendship points.
 
 ### Rarity
 
@@ -66,10 +68,12 @@ The `item_rarity` column must be one of the following values:
 
 The `relationship_status` column must be one of the following values:
 
-- `Hostile`
-- `Neutral`
-- `Friendly`
-- `Allied`
+| Value    | Friendship Range |
+|----------|------------------|
+| Hostile  | -10 to -6        |
+| Neutral  | -5 to -1         |
+| Friendly | 0 to +5          |
+| Allied   | +6 to +10        |
 
 ### Price Validity
 
