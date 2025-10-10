@@ -156,8 +156,12 @@ bundle exec ruby bin/validate path/to/file.csv
 **Validation checks:**
 - JSON validity in `output` column
 - Valid action types: sell, refuse, negotiate, talk
+- Valid rarity: Common, Rare, or Epic
+- Valid relationship status: Hostile, Neutral, Friendly, or Allied
+- Expected price > 0
 - Price > 0 for sell/negotiate actions
-- Friendship change between -10 and 10
+- Friendship change between -3 and 3
+- Price ranges based on rarity and relationship (see detailed rules in `docs/features/validation.md`)
 
 Exit code 0 = valid; exit code 1 = errors with detailed messages.
 
