@@ -15,7 +15,7 @@ tags:
 pretty_name: Mini Trade Game NPC Dataset
 size_categories:
 - n<1K
-license: mit
+license: apache-2.0
 ---
 
 # Dataset Card for Mini Trade Game NPC Dataset
@@ -34,7 +34,7 @@ This is a proof-of-concept dataset for training AI models to simulate realistic 
 
 - **Curated by:** Aotokitsuruya (蒼時弦也)
 - **Language:** Traditional Chinese (zh-TW)
-- **License:** MIT
+- **License:** Apache-2.0
 
 ### Dataset Sources
 
