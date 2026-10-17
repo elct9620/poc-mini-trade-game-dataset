@@ -19,6 +19,7 @@ module ChatFormat
     - Name: %<item_name>s
     - Rarity: %<item_rarity>s
     - Expected Price: %<item_expected_price>s
+    - Asking Price: %<asking_price>s
 
     Relatioship: %<relationship_status>s
 
@@ -32,6 +33,14 @@ module ChatFormat
       }
     }
   PROMPT
+
+  # Asking price as a multiple of expected price, by rarity and relationship.
+  # The game computes it so the model copies a number instead of multiplying.
+  ASKING_RATIO = {
+    'Common' => { 'Hostile' => 1.3, 'Neutral' => 1.0, 'Friendly' => 0.8, 'Allied' => 0.7 },
+    'Rare' => { 'Hostile' => 1.5, 'Neutral' => 1.0, 'Friendly' => 1.0, 'Allied' => 0.85 },
+    'Epic' => { 'Hostile' => 2.0, 'Neutral' => 1.2, 'Friendly' => 1.0, 'Allied' => 1.0 }
+  }.freeze
 
   # JSON schema of the NPC reply, for inference engines that support guided decoding.
   RESPONSE_SCHEMA = {
@@ -66,12 +75,19 @@ module ChatFormat
     prompt(row) + [{ 'role' => 'assistant', 'content' => row['output'] }]
   end
 
+  # Returns the expected price times the asking ratio, rounded up to a whole coin.
+  def asking_price(row)
+    ratio = ASKING_RATIO.dig(row['item_rarity'], row['relationship_status'])
+    (row['item_expected_price'].to_r * Rational(ratio.to_s)).ceil
+  end
+
   def system_prompt(row)
     format(
       SYSTEM_PROMPT,
       item_name: row['item_name'],
       item_rarity: row['item_rarity'],
       item_expected_price: row['item_expected_price'],
+      asking_price: asking_price(row),
       relationship_status: row['relationship_status']
     )
   end

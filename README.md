@@ -164,6 +164,7 @@ Current Inventory:
 - Name: {item_name}
 - Rarity: {item_rarity}
 - Expected Price: {item_expected_price}
+- Asking Price: {item_asking_price}
 
 Relatioship: {relationship_status}
 

@@ -49,6 +49,17 @@ All outputs must be valid JSON with this structure:
 - **Rare**: Should not sell below expected price
 - **Epic**: Must sell at or above expected price
 
+### Asking Price
+The game computes the NPC's asking price and passes it in the system prompt, so the model copies a number instead of multiplying. Asking price = expected price × ratio, rounded up:
+
+| Rarity | Hostile | Neutral | Friendly | Allied |
+|--------|---------|---------|----------|--------|
+| Common | 1.3     | 1.0     | 0.8      | 0.7    |
+| Rare   | 1.5     | 1.0     | 1.0      | 0.85   |
+| Epic   | 2.0     | 1.2     | 1.0      | 1.0    |
+
+Sell and negotiate use the asking price, except a Neutral or Hostile player offering at or above it gets the offered price, and an Allied player's low offer of at least half the expected price is accepted.
+
 ### Friendship System
 Friendship ranges from -10 to +10:
 - -10 to -6: Hostile (only high prices)
@@ -73,6 +84,7 @@ Current Inventory:
 - Name: {item_name}
 - Rarity: {item_rarity}
 - Expected Price: {item_expected_price}
+- Asking Price: {item_asking_price}
 
 Relatioship: {relationship_status}
 
