@@ -42,22 +42,39 @@ module ChatFormat
     'Epic' => { 'Hostile' => 2.0, 'Neutral' => 1.2, 'Friendly' => 1.0, 'Allied' => 1.0 }
   }.freeze
 
+  FRIENDSHIP_SCHEMA = { 'type' => 'integer', 'minimum' => -3, 'maximum' => 3 }.freeze
+
   # JSON schema of the NPC reply, for inference engines that support guided decoding.
+  # Every field is required per action so a grammar cannot end the object before the price.
   RESPONSE_SCHEMA = {
-    'type' => 'object',
-    'properties' => {
-      'action' => { 'type' => 'string', 'enum' => %w[sell refuse negotiate talk] },
-      'message' => { 'type' => 'string' },
-      'parameters' => {
+    'anyOf' => [
+      {
         'type' => 'object',
         'properties' => {
-          'price' => { 'type' => 'number' },
-          'friendship_change' => { 'type' => 'integer', 'minimum' => -3, 'maximum' => 3 }
+          'action' => { 'type' => 'string', 'enum' => %w[sell negotiate refuse] },
+          'message' => { 'type' => 'string' },
+          'parameters' => {
+            'type' => 'object',
+            'properties' => { 'price' => { 'type' => 'integer', 'minimum' => 0 }, 'friendship_change' => FRIENDSHIP_SCHEMA },
+            'required' => %w[price friendship_change]
+          }
         },
-        'required' => ['friendship_change']
+        'required' => %w[action message parameters]
+      },
+      {
+        'type' => 'object',
+        'properties' => {
+          'action' => { 'const' => 'talk' },
+          'message' => { 'type' => 'string' },
+          'parameters' => {
+            'type' => 'object',
+            'properties' => { 'friendship_change' => FRIENDSHIP_SCHEMA },
+            'required' => %w[friendship_change]
+          }
+        },
+        'required' => %w[action message parameters]
       }
-    },
-    'required' => %w[action message parameters]
+    ]
   }.freeze
 
   module_function
