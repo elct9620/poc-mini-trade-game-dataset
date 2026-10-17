@@ -48,6 +48,12 @@ RSpec.describe Evaluation do
       it { expect(result['errors']).to eq(['Output is not a JSON object']) }
     end
 
+    context 'when the reply is measured' do
+      let(:reply) { '{"action":"talk","message":"你好","parameters":{"friendship_change":0}}' }
+
+      it { expect(result['latency']).to be >= 0 }
+    end
+
     context 'when the reply chooses a different action' do
       let(:reply) { '{"action":"refuse","message":"不賣","parameters":{"friendship_change":0}}' }
 
@@ -61,18 +67,24 @@ RSpec.describe Evaluation do
     context 'when results are mixed' do
       let(:results) do
         [
-          { 'json_valid' => true, 'rule_pass' => true, 'action_match' => true },
-          { 'json_valid' => true, 'rule_pass' => false, 'action_match' => false }
+          { 'json_valid' => true, 'rule_pass' => true, 'action_match' => true, 'latency' => 0.2 },
+          { 'json_valid' => true, 'rule_pass' => false, 'action_match' => false, 'latency' => 0.6 }
         ]
       end
 
-      it { is_expected.to eq({ 'total' => 2, 'json_valid' => 1.0, 'rule_pass' => 0.5, 'action_match' => 0.5 }) }
+      it do
+        is_expected.to eq({ 'total' => 2, 'json_valid' => 1.0, 'rule_pass' => 0.5, 'action_match' => 0.5,
+                            'latency_mean' => 0.4, 'latency_p95' => 0.6 })
+      end
     end
 
     context 'when results are empty' do
       let(:results) { [] }
 
-      it { is_expected.to eq({ 'total' => 0, 'json_valid' => 0.0, 'rule_pass' => 0.0, 'action_match' => 0.0 }) }
+      it do
+        is_expected.to eq({ 'total' => 0, 'json_valid' => 0.0, 'rule_pass' => 0.0, 'action_match' => 0.0,
+                            'latency_mean' => 0.0, 'latency_p95' => 0.0 })
+      end
     end
   end
 end
