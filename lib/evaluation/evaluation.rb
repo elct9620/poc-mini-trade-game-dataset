@@ -33,14 +33,14 @@ class Evaluation
 
   # Summarizes results into rates between 0 and 1.
   #
-  # Returns a hash with total, json_valid, rule_pass, action_match, and reply latency in seconds.
+  # Returns a hash with total, json_valid, rule_pass, action_match, friendship_match, and reply latency in seconds.
   def self.summary(results)
     total = results.size
     rate = ->(key) { total.zero? ? 0.0 : results.count { |result| result[key] }.fdiv(total) }
     latencies = results.map { |result| result['latency'] }.sort
 
     { 'total' => total, 'json_valid' => rate['json_valid'], 'rule_pass' => rate['rule_pass'],
-      'action_match' => rate['action_match'],
+      'action_match' => rate['action_match'], 'friendship_match' => rate['friendship_match'],
       'latency_mean' => total.zero? ? 0.0 : (latencies.sum / total).round(3),
       'latency_p95' => total.zero? ? 0.0 : latencies[(0.95 * (total - 1)).ceil].round(3) }
   end
@@ -53,14 +53,17 @@ class Evaluation
     latency = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
     actual = parse_object(reply)
     errors = actual ? rule_errors(row.to_h.merge('output' => reply)) : ['Output is not a JSON object']
-    expected_action = JSON.parse(row['output'])['action']
+    expected = JSON.parse(row['output'])
+    expected_action = expected['action']
     actual_action = actual&.dig('action')
 
     {
       'id' => row['id'], 'output' => reply, 'errors' => errors,
       'json_valid' => !actual.nil?, 'rule_pass' => errors.empty?,
       'expected_action' => expected_action, 'actual_action' => actual_action,
-      'action_match' => actual_action == expected_action, 'latency' => latency
+      'action_match' => actual_action == expected_action,
+      'friendship_match' => !actual.nil? && actual.dig('parameters', 'friendship_change') == expected.dig('parameters', 'friendship_change'),
+      'latency' => latency
     }
   end
 

@@ -26,6 +26,7 @@ RSpec.describe Evaluation do
 
       it { expect(result['rule_pass']).to be(true) }
       it { expect(result['action_match']).to be(true) }
+      it { expect(result['friendship_match']).to be(true) }
     end
 
     context 'when the reply sells below the minimum price' do
@@ -54,6 +55,12 @@ RSpec.describe Evaluation do
       it { expect(result['latency']).to be >= 0 }
     end
 
+    context 'when the reply changes friendship differently' do
+      let(:reply) { '{"action":"sell","message":"成交","parameters":{"price":120,"friendship_change":-1}}' }
+
+      it { expect(result['friendship_match']).to be(false) }
+    end
+
     context 'when the reply chooses a different action' do
       let(:reply) { '{"action":"refuse","message":"不賣","parameters":{"friendship_change":0}}' }
 
@@ -67,14 +74,16 @@ RSpec.describe Evaluation do
     context 'when results are mixed' do
       let(:results) do
         [
-          { 'json_valid' => true, 'rule_pass' => true, 'action_match' => true, 'latency' => 0.2 },
-          { 'json_valid' => true, 'rule_pass' => false, 'action_match' => false, 'latency' => 0.6 }
+          { 'json_valid' => true, 'rule_pass' => true, 'action_match' => true, 'friendship_match' => true,
+            'latency' => 0.2 },
+          { 'json_valid' => true, 'rule_pass' => false, 'action_match' => false, 'friendship_match' => true,
+            'latency' => 0.6 }
         ]
       end
 
       it do
         is_expected.to eq({ 'total' => 2, 'json_valid' => 1.0, 'rule_pass' => 0.5, 'action_match' => 0.5,
-                            'latency_mean' => 0.4, 'latency_p95' => 0.6 })
+                            'friendship_match' => 1.0, 'latency_mean' => 0.4, 'latency_p95' => 0.6 })
       end
     end
 
@@ -83,7 +92,7 @@ RSpec.describe Evaluation do
 
       it do
         is_expected.to eq({ 'total' => 0, 'json_valid' => 0.0, 'rule_pass' => 0.0, 'action_match' => 0.0,
-                            'latency_mean' => 0.0, 'latency_p95' => 0.0 })
+                            'friendship_match' => 0.0, 'latency_mean' => 0.0, 'latency_p95' => 0.0 })
       end
     end
   end

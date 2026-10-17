@@ -23,6 +23,7 @@ The prompt is built by the same system prompt as [conversion](../features/conver
 | `json_valid`   | The reply parses as a JSON object                                       |
 | `rule_pass`    | The reply passes every [validation](../features/validation.md) rule for the row     |
 | `action_match` | The reply's `action` equals the reference output's `action`             |
+| `friendship_match` | The reply's `friendship_change` equals the reference value          |
 
 Each metric is reported as a rate between 0 and 1 together with `total`. The summary also reports `latency_mean` and `latency_p95`, the seconds each reply took including the HTTP round trip.
 
