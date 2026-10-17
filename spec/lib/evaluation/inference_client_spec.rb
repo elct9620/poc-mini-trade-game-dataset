@@ -3,9 +3,9 @@
 require 'spec_helper'
 require 'json'
 require 'socket'
-require_relative '../../lib/inference_client'
+require_relative '../../../lib/evaluation/inference_client'
 
-RSpec.describe InferenceClient do
+RSpec.describe Evaluation::InferenceClient do
   # Serves one HTTP response and records the request body, standing in for the model server.
   let(:server) { TCPServer.new('127.0.0.1', 0) }
   let(:endpoint) { "http://127.0.0.1:#{server.addr[1]}/v1" }
@@ -59,7 +59,7 @@ RSpec.describe InferenceClient do
       let(:status) { '500 Internal Server Error' }
       let(:body) { '{"error":"boom"}' }
 
-      it { expect { complete }.to raise_error(InferenceClient::Error, /HTTP 500/) }
+      it { expect { complete }.to raise_error(Evaluation::InferenceClient::Error, /HTTP 500/) }
     end
   end
 end

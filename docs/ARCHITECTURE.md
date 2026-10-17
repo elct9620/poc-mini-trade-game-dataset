@@ -1,30 +1,35 @@
 # Architecture
 
-This document outlines the architecture of script to validate dataset.
+This document outlines the architecture of the scripts that validate, convert, and evaluate against the dataset.
 
 ## Structure
 
-In this project, the scripts are used to help validate the dataset.
+In this project, the scripts help validate and convert the dataset, plus a separate tool to evaluate models trained on it.
 
 ```
 |- bin/
-    |- validate # The entrypoint script to validate the dataset
+    |- validate # Dataset: validate rows
+    |- convert  # Dataset: export chat-format JSONL
+    |- evaluate # Tool: score a served model
 |- lib/
-    |- validator/
-        |- json_syntax.rb # Syntax Validator
-        |- schema_validator.rb # Schema Validator
-    |- dataset.rb    # Dataset Loader
-    |- validation.rb # The usecase to validate the dataset
-|- spec/ # RSpec tests
-    |- validator/
-        |- json_syntax_spec.rb
-        |- schema_validator_spec.rb
-    |- dataset_spec.rb
+    |- validator/      # Rule validators
+    |- validator.rb    # The shared validator set
+    |- dataset.rb      # Dataset Loader
+    |- validation.rb   # The usecase to validate the dataset
+    |- chat_format.rb  # System prompt and chat messages for a row
+    |- conversion.rb   # The usecase to convert the dataset
+    |- evaluation/     # Model evaluation tool
+        |- evaluation.rb       # The usecase to score a model
+        |- inference_client.rb # OpenAI-compatible chat client
+        |- response_schema.rb  # Guided decoding contract
+|- spec/ # RSpec tests mirroring lib/
 |- docs/
-    |- features/
-        |- validation.md # Feature description, usage, acceptance criteria
+    |- features/ # Dataset features: usage, acceptance criteria
+    |- tools/    # Tools for dataset consumers
     |- ARCHITECTURE.md # This document
 ```
+
+Dataset features (`validate`, `convert`) define and check the data. Tools (`evaluate`) help consumers use it and reuse the dataset rules without adding requirements to the data.
 
 ## Dataset
 

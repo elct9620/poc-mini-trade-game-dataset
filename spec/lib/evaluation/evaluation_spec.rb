@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require_relative '../../lib/evaluation'
-require_relative '../../lib/validator'
+require_relative '../../../lib/evaluation/evaluation'
+require_relative '../../../lib/validator'
 
 RSpec.describe Evaluation do
   let(:row) do

@@ -9,7 +9,7 @@ require 'json'
 #
 # == Reference
 # - {docs/features/conversion.md}[docs/features/conversion.md]
-# - {docs/features/evaluation.md}[docs/features/evaluation.md]
+# - {docs/tools/evaluation.md}[docs/tools/evaluation.md]
 ##
 module ChatFormat
   SYSTEM_PROMPT = <<~PROMPT.chomp
@@ -40,41 +40,6 @@ module ChatFormat
     'Common' => { 'Hostile' => 1.3, 'Neutral' => 1.0, 'Friendly' => 0.8, 'Allied' => 0.7 },
     'Rare' => { 'Hostile' => 1.5, 'Neutral' => 1.0, 'Friendly' => 1.0, 'Allied' => 0.85 },
     'Epic' => { 'Hostile' => 2.0, 'Neutral' => 1.2, 'Friendly' => 1.0, 'Allied' => 1.0 }
-  }.freeze
-
-  FRIENDSHIP_SCHEMA = { 'type' => 'integer', 'minimum' => -3, 'maximum' => 3 }.freeze
-
-  # JSON schema of the NPC reply, for inference engines that support guided decoding.
-  # Every field is required per action so a grammar cannot end the object before the price.
-  RESPONSE_SCHEMA = {
-    'anyOf' => [
-      {
-        'type' => 'object',
-        'properties' => {
-          'action' => { 'type' => 'string', 'enum' => %w[sell negotiate refuse] },
-          'message' => { 'type' => 'string' },
-          'parameters' => {
-            'type' => 'object',
-            'properties' => { 'price' => { 'type' => 'integer', 'minimum' => 0 }, 'friendship_change' => FRIENDSHIP_SCHEMA },
-            'required' => %w[price friendship_change]
-          }
-        },
-        'required' => %w[action message parameters]
-      },
-      {
-        'type' => 'object',
-        'properties' => {
-          'action' => { 'const' => 'talk' },
-          'message' => { 'type' => 'string' },
-          'parameters' => {
-            'type' => 'object',
-            'properties' => { 'friendship_change' => FRIENDSHIP_SCHEMA },
-            'required' => %w[friendship_change]
-          }
-        },
-        'required' => %w[action message parameters]
-      }
-    ]
   }.freeze
 
   module_function

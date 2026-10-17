@@ -14,7 +14,7 @@ require_relative 'validator/price_range_validator'
 #
 # == Reference
 # - {docs/features/validation.md}[docs/features/validation.md]
-# - {docs/features/evaluation.md}[docs/features/evaluation.md]
+# - {docs/tools/evaluation.md}[docs/tools/evaluation.md]
 ##
 module Validator
   module_function

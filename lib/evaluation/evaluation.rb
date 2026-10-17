@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require 'json'
-require_relative 'chat_format'
-require_relative 'validation_error'
+require_relative '../chat_format'
+require_relative '../validation_error'
 
 ##
 # = Evaluation
@@ -10,7 +10,7 @@ require_relative 'validation_error'
 # Uses dependency injection to accept dataset, inference client, and validators.
 #
 # == Reference
-# - {docs/features/evaluation.md}[docs/features/evaluation.md]
+# - {docs/tools/evaluation.md}[docs/tools/evaluation.md]
 ##
 class Evaluation
   # Creates a new Evaluation instance.

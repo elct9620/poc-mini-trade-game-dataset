@@ -106,16 +106,23 @@ The codebase follows a modular validation architecture with separation of concer
 **Structure:**
 ```
 |- bin/
-    |- validate              # CLI entrypoint script
+    |- validate              # Dataset: check rows against the rules
+    |- convert               # Dataset: export rows as chat-format JSONL
+    |- evaluate              # Tool: score a served model against a split
 |- lib/
-    |- validator/
-        |- json_syntax.rb    # JSON syntax validation
-        |- schema_validator.rb # Schema and business rules validation
+    |- validator/            # Dataset rule validators
+    |- validator.rb          # The shared validator set
     |- dataset.rb            # Dataset CSV loader
     |- validation.rb         # Validation usecase orchestrator
+    |- chat_format.rb        # System prompt and chat messages for a row
+    |- conversion.rb         # Conversion usecase
+    |- evaluation/           # Model evaluation tool (not part of the dataset)
 |- spec/                     # RSpec tests mirror lib/ structure
-|- docs/features/            # Feature documentation with acceptance criteria
+|- docs/features/            # Dataset features with acceptance criteria
+|- docs/tools/               # Tools for dataset consumers (model evaluation)
 ```
+
+Dataset features define and check the data itself. Tools help consumers use the dataset, such as scoring a fine-tuned model; they reuse the dataset rules but add no requirements to the data.
 
 **Design Pattern:**
 - **Dataset** (`lib/dataset.rb`): Loads and parses CSV files
@@ -154,6 +161,15 @@ bundle exec rspec spec/lib/csv_validator_spec.rb:42
 ```
 
 Test coverage reports are generated in `coverage/` using SimpleCov.
+
+### Conversion and Evaluation
+```bash
+# Export a split as chat-format JSONL for fine-tuning
+bundle exec ruby bin/convert train.csv -o train.jsonl
+
+# Score a model served on an OpenAI-compatible endpoint
+bundle exec ruby bin/evaluate test.csv --endpoint http://127.0.0.1:8080/v1 --json-schema
+```
 
 ### Validation
 ```bash

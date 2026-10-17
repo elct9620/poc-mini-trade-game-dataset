@@ -1,6 +1,6 @@
 # Evaluation
 
-The evaluation feature measures whether a fine-tuned model is usable as an NPC merchant, by asking it to answer every row of a held-out dataset and judging each reply with the dataset rules.
+The evaluation tool measures how well a fine-tuned model follows this dataset, by asking it to answer every row of a held-out split and judging each reply with the dataset rules. It is a tool for consumers of the dataset, not a dataset feature: the dataset itself is defined by [validation](../features/validation.md) and [conversion](../features/conversion.md).
 
 ## Usage
 
@@ -14,14 +14,14 @@ bundle exec ruby bin/evaluate test.csv --endpoint http://127.0.0.1:8888/v1 [--js
 | `--json-schema` | Send the NPC reply schema as `response_format` (guided decoding)        |
 | `--report`      | Write each row's reply, rule errors, and actions as JSONL               |
 
-The prompt is built by the same system prompt as [conversion](conversion.md). Replies use greedy decoding (`temperature: 0`) so runs are reproducible.
+The prompt is built by the same system prompt as [conversion](../features/conversion.md). Replies use greedy decoding (`temperature: 0`) so runs are reproducible.
 
 ## Metrics
 
 | Metric         | A row counts when                                                       |
 |----------------|-------------------------------------------------------------------------|
 | `json_valid`   | The reply parses as a JSON object                                       |
-| `rule_pass`    | The reply passes every [validation](validation.md) rule for the row     |
+| `rule_pass`    | The reply passes every [validation](../features/validation.md) rule for the row     |
 | `action_match` | The reply's `action` equals the reference output's `action`             |
 
 Each metric is reported as a rate between 0 and 1 together with `total`. The summary also reports `latency_mean` and `latency_p95`, the seconds each reply took including the HTTP round trip.

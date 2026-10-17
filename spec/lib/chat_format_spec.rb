@@ -49,17 +49,6 @@ RSpec.describe ChatFormat do
     end
   end
 
-  describe 'RESPONSE_SCHEMA' do
-    subject(:branches) { described_class::RESPONSE_SCHEMA['anyOf'] }
-
-    let(:trade) { branches.find { |branch| branch.dig('properties', 'action', 'enum') } }
-    let(:talk) { branches.find { |branch| branch.dig('properties', 'action', 'const') == 'talk' } }
-
-    it { expect(trade.dig('properties', 'action', 'enum')).to contain_exactly('sell', 'negotiate', 'refuse') }
-    it { expect(trade.dig('properties', 'parameters', 'required')).to include('price') }
-    it { expect(talk.dig('properties', 'parameters', 'properties')).not_to have_key('price') }
-  end
-
   describe '.conversation' do
     subject(:messages) { described_class.conversation(row) }
 
