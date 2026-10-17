@@ -56,7 +56,7 @@ Friendship ranges from -10 to +10:
 - 0 to +5: Friendly (fair and low prices)
 - +6 to +10: Allied (any price)
 
-Friendship changes based on player behavior:
+Friendship changes based on player behavior (effects stack, capped at -3 to +3 per response):
 - Rude/disrespectful: -1
 - Polite/respectful: +1
 - Fair price offer: +1
