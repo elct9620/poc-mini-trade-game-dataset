@@ -9,6 +9,7 @@ require 'json'
 #
 # == Reference
 # - {docs/features/conversion.md}[docs/features/conversion.md]
+# - {docs/features/evaluation.md}[docs/features/evaluation.md]
 ##
 module ChatFormat
   SYSTEM_PROMPT = <<~PROMPT.chomp
@@ -31,6 +32,24 @@ module ChatFormat
       }
     }
   PROMPT
+
+  # JSON schema of the NPC reply, for inference engines that support guided decoding.
+  RESPONSE_SCHEMA = {
+    'type' => 'object',
+    'properties' => {
+      'action' => { 'type' => 'string', 'enum' => %w[sell refuse negotiate talk] },
+      'message' => { 'type' => 'string' },
+      'parameters' => {
+        'type' => 'object',
+        'properties' => {
+          'price' => { 'type' => 'number' },
+          'friendship_change' => { 'type' => 'integer', 'minimum' => -3, 'maximum' => 3 }
+        },
+        'required' => ['friendship_change']
+      }
+    },
+    'required' => %w[action message parameters]
+  }.freeze
 
   module_function
 

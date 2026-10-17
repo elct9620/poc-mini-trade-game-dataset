@@ -1,0 +1,53 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# link:docs/features/evaluation.md
+# Command-line tool to evaluate a served model against a dataset CSV.
+
+require 'json'
+require 'optparse'
+require_relative '../lib/dataset'
+require_relative '../lib/chat_format'
+require_relative '../lib/evaluation'
+require_relative '../lib/inference_client'
+require_relative '../lib/validator'
+
+usage = 'Usage: bundle exec ruby bin/evaluate path/to/test.csv --endpoint http://127.0.0.1:8888/v1 [options]'
+options = { endpoint: nil, json_schema: false, report: nil }
+
+OptionParser.new do |opts|
+  opts.banner = usage
+  opts.on('-e', '--endpoint URL', 'OpenAI-compatible base URL serving the model') { |url| options[:endpoint] = url }
+  opts.on('--json-schema', 'Constrain replies with the NPC response JSON schema') { options[:json_schema] = true }
+  opts.on('-r', '--report PATH', 'Write per-row results as JSONL') { |path| options[:report] = path }
+end.parse!
+
+file_path = ARGV[0]
+
+if file_path.nil? || options[:endpoint].nil?
+  puts usage
+  exit 1
+end
+
+unless File.exist?(file_path)
+  puts "Error: File '#{file_path}' not found"
+  exit 1
+end
+
+response_format = if options[:json_schema]
+                    { 'type' => 'json_schema', 'json_schema' => { 'name' => 'npc_reply', 'schema' => ChatFormat::RESPONSE_SCHEMA } }
+                  end
+client = InferenceClient.new(options[:endpoint], response_format: response_format)
+
+begin
+  results = Evaluation.new(Dataset.new(file_path), client, Validator.all).execute
+rescue InferenceClient::Error, SystemCallError => e
+  puts "Error: #{e.message}"
+  exit 1
+end
+
+if options[:report]
+  File.open(options[:report], 'w') { |file| results.each { |result| file.puts JSON.generate(result) } }
+end
+
+puts JSON.pretty_generate(Evaluation.summary(results))
