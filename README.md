@@ -14,8 +14,17 @@ tags:
 - conversational
 pretty_name: Mini Trade Game NPC Dataset
 size_categories:
-- n<1K
+- 1K<n<10K
 license: apache-2.0
+configs:
+- config_name: default
+  data_files:
+  - split: train
+    path: train.csv
+  - split: validation
+    path: validation.csv
+  - split: test
+    path: test.csv
 ---
 
 # Dataset Card for Mini Trade Game NPC Dataset
