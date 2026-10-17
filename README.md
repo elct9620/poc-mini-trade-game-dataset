@@ -91,7 +91,7 @@ All NPC responses follow this JSON structure:
 
 | Split      | Examples | Use                                   |
 |------------|----------|---------------------------------------|
-| train      | 700      | Fine-tuning                           |
+| train      | 900      | Fine-tuning                           |
 | validation | 60       | Eval loss during fine-tuning          |
 | test       | 100      | Final scoring with `bin/evaluate`     |
 
@@ -201,7 +201,7 @@ All dataset entries are validated using a Ruby-based validation script (`bin/val
 2. **Cultural Context**: Reflects trading behaviors and politeness norms in Traditional Chinese gaming culture
 3. **Synthetic Data**: All examples are AI-generated, not based on real player interactions
 4. **Game Mechanics**: Fixed game rules may not generalize to all trading game scenarios
-5. **Scale**: 700 training and 100 test examples
+5. **Scale**: 900 training, 60 validation and 100 test examples
 
 ### Recommendations
 
