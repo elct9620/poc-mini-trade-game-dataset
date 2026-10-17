@@ -89,12 +89,13 @@ All NPC responses follow this JSON structure:
 
 ### Data Splits
 
-| Split | Examples |
-|-------|----------|
-| train | 700      |
-| test  | 100      |
+| Split      | Examples | Use                                   |
+|------------|----------|---------------------------------------|
+| train      | 700      | Fine-tuning                           |
+| validation | 60       | Eval loss during fine-tuning          |
+| test       | 100      | Final scoring with `bin/evaluate`     |
 
-Test items never appear in the train split, so evaluation measures generalization to unseen items.
+Items never repeat across splits, so validation and test measure generalization to unseen items.
 
 ## Game Mechanics
 
