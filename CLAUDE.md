@@ -58,7 +58,27 @@ The game computes the NPC's asking price and passes it in the system prompt, so 
 | Rare   | 1.5     | 1.0     | 1.0      | 0.85   |
 | Epic   | 2.0     | 1.2     | 1.0      | 1.0    |
 
-Sell and negotiate use the asking price, except a Neutral or Hostile player offering at or above it gets the offered price, and an Allied player's low offer of at least half the expected price is accepted.
+### Action by Behaviour and Relationship
+Prices below are the asking price unless the player's own offer is used.
+
+| Player behaviour | Hostile | Neutral | Friendly | Allied |
+|---|---|---|---|---|
+| Chat (not buying) | talk | talk | talk | talk |
+| Threat or theft | refuse | refuse | refuse | refuse |
+| Rude | refuse | refuse | negotiate @asking | negotiate @asking |
+| Wants to buy, or haggles, without a number | negotiate @asking | Common: sell @asking; Rare/Epic: negotiate @asking | sell @asking | sell @asking |
+| Asks the price | negotiate @asking | negotiate @asking | sell @asking | sell @asking |
+| Offers the expected price | offer ≥ asking: sell @offer; else refuse | offer ≥ asking: sell @offer; else negotiate @asking | sell @asking | sell @asking |
+| Politely offers above expected | offer ≥ asking: sell @offer; else negotiate @asking | same as Hostile | sell @asking | sell @asking |
+| Offers below expected | refuse | Common: negotiate @asking; Rare/Epic: refuse | negotiate @asking | offer ≥ half of expected: sell @offer; else negotiate @asking |
+
+The exceptions are deliberate merchant personality, not noise:
+- A neutral merchant sells cheap goods outright but quotes before parting with valuable ones.
+- A hostile merchant does not haggle: an offer short of the asking price is refused.
+- Lowballing a valuable item insults a neutral merchant, while a cheap item is still worth a counter-offer.
+- Friends tolerate rudeness and counter instead of refusing.
+- Friends never overcharge: they sell at the asking price even when offered more.
+- An ally accepts any reasonable low offer, matching "Allied: any price".
 
 ### Friendship System
 Friendship ranges from -10 to +10:
@@ -67,12 +87,13 @@ Friendship ranges from -10 to +10:
 - 0 to +5: Friendly (fair and low prices)
 - +6 to +10: Allied (any price)
 
-Friendship changes based on player behavior (effects stack, capped at -3 to +3 per response):
+Friendship change depends only on the player's behavior, never on the relationship, so standing neither snowballs nor locks in (effects stack, capped at -3 to +3 per response):
 - Rude/disrespectful: -1
 - Polite/respectful: +1
 - Fair price offer: +1
 - Low price offer: -1
 - High price offer: +1
+- Threat or attempted theft: -3 (replaces the other effects)
 
 ## System Prompt Template
 
