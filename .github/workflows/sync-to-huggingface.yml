@@ -7,12 +7,22 @@ on:
 jobs:
   sync-to-hub:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Exchanged for a short-lived Hub token via Trusted Publishers
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           lfs: true
+      - name: Install the hf CLI
+        run: |
+          curl -LsSf https://hf.co/cli/install.sh | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Push to hub
         env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push https://aotoki:$HF_TOKEN@huggingface.co/datasets/aotoki/poc-mini-trade-game-dataset main
+          HF_OIDC_RESOURCE: datasets/aotoki/poc-mini-trade-game-dataset
+        run: |
+          HF_TOKEN=$(hf auth token)
+          echo "::add-mask::$HF_TOKEN"
+          git push https://aotoki:$HF_TOKEN@huggingface.co/datasets/aotoki/poc-mini-trade-game-dataset main
