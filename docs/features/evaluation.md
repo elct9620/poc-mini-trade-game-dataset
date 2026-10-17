@@ -28,20 +28,6 @@ Each metric is reported as a rate between 0 and 1 together with `total`. The sum
 
 `action_match` is a proxy: a different action can still be reasonable, so a low rate calls for reading the report rather than failing the model outright.
 
-## Usability Threshold
-
-A model is usable in the game when, on `test.csv`:
-
-| Metric         | Threshold | Note                                              |
-|----------------|-----------|---------------------------------------------------|
-| `json_valid`   | 1.00 with `--json-schema`; ≥ 0.98 without | The game deploys with guided decoding |
-| `rule_pass`    | ≥ 0.90    |                                                   |
-| `action_match` | ≥ 0.85    |                                                   |
-| `latency_mean` | < 1.0 s   | Served by llama.cpp on CPU only (`-ngl 0`)        |
-| `latency_p95`  | < 2.0 s   | Same CPU-only setup                               |
-
-The deliverable is a Q4_K_M GGUF, so thresholds are checked against that file served by llama.cpp; a faster backend passing does not count.
-
 ## Acceptance Criteria
 
 - `bin/evaluate` prints the summary as JSON, including reply latency.
