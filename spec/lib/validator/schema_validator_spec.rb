@@ -55,6 +55,22 @@ RSpec.describe Validator::SchemaValidator do
       end
     end
 
+    context 'when parameters are omitted for sell action' do
+      let(:row) { CSV::Row.new(['output'], ['{"action":"sell","message":"Sold"}']) }
+
+      it 'is expected to raise ValidationError' do
+        expect { validation_result }.to raise_error(ValidationError, "Price must be greater than 0 for action 'sell'")
+      end
+    end
+
+    context 'when message is missing' do
+      let(:row) { CSV::Row.new(['output'], ['{"action":"talk","parameters":{"friendship_change":0}}']) }
+
+      it 'is expected to raise ValidationError' do
+        expect { validation_result }.to raise_error(ValidationError, 'Message must be a non-empty string')
+      end
+    end
+
     context 'when price is zero for sell action' do
       let(:row) { CSV::Row.new(['output'], ['{"action":"sell","message":"Sold","parameters":{"price":0}}']) }
 

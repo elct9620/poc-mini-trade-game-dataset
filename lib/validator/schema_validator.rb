@@ -27,7 +27,8 @@ module Validator
       data = JSON.parse(output)
 
       validate_action(data['action'])
-      validate_parameters(data) if data['parameters']
+      validate_message(data['message'])
+      validate_parameters(data)
 
       true
     rescue JSON::ParserError
@@ -44,9 +45,16 @@ module Validator
       raise ValidationError, "Invalid action '#{action}'"
     end
 
-    # Validates the parameters object.
+    # Validates the message shown to the player.
+    def validate_message(message)
+      return if message.is_a?(String) && !message.empty?
+
+      raise ValidationError, "Message must be a non-empty string"
+    end
+
+    # Validates the parameters object, which talk and refuse may omit.
     def validate_parameters(data)
-      params = data['parameters']
+      params = data['parameters'] || {}
       action = data['action']
 
       validate_price(action, params['price'])

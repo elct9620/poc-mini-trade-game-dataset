@@ -37,7 +37,7 @@ The `output` column must contain valid JSON.
 The JSON in the `output` column always contains the following fields:
 
 - `action` - enum: `sell`, `refuse`, `negotiate`, `talk`
-- `message` - string
+- `message` - non-empty string
 - `parameters` - object
 
 #### Trade Parameters Object
