@@ -91,11 +91,11 @@ All NPC responses follow this JSON structure:
 
 | Split      | Examples | Use                                   |
 |------------|----------|---------------------------------------|
-| train      | 1700     | Fine-tuning                           |
-| validation | 60       | Eval loss during fine-tuning          |
-| test       | 100      | Final scoring with `bin/evaluate`     |
+| train      | 1650     | Fine-tuning                           |
+| validation | 205      | Checkpoint selection                  |
+| test       | 205      | Final scoring with `bin/evaluate`     |
 
-Items never repeat across splits, so validation and test measure generalization to unseen items.
+The splits are an 80/10/10 division of all labelled rows, stratified by action, relationship status, and rarity so each split keeps the same mix. Items never repeat across splits, so validation and test measure generalization to unseen items. Select checkpoints by `bin/evaluate` scores on validation rather than eval loss: most of the loss comes from free-form dialogue wording, so it bottoms out earlier than decision accuracy peaks.
 
 ## Game Mechanics
 
@@ -201,7 +201,7 @@ All dataset entries are validated using a Ruby-based validation script (`bin/val
 2. **Cultural Context**: Reflects trading behaviors and politeness norms in Traditional Chinese gaming culture
 3. **Synthetic Data**: All examples are AI-generated, not based on real player interactions
 4. **Game Mechanics**: Fixed game rules may not generalize to all trading game scenarios
-5. **Scale**: 1700 training, 60 validation and 100 test examples
+5. **Scale**: 1650 training, 205 validation and 205 test examples
 
 ### Recommendations
 
