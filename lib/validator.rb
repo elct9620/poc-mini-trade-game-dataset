@@ -6,6 +6,7 @@ require_relative 'validator/rarity_validator'
 require_relative 'validator/relationship_validator'
 require_relative 'validator/expected_price_validator'
 require_relative 'validator/price_range_validator'
+require_relative 'validator/bargaining_validator'
 
 ##
 # = Validator
@@ -14,6 +15,7 @@ require_relative 'validator/price_range_validator'
 #
 # == Reference
 # - {docs/features/validation.md}[docs/features/validation.md]
+# - {docs/features/bargaining.md}[docs/features/bargaining.md]
 # - {docs/tools/evaluation.md}[docs/tools/evaluation.md]
 ##
 module Validator
@@ -27,7 +29,8 @@ module Validator
       ExpectedPriceValidator.new,
       JsonSyntax.new,
       SchemaValidator.new,
-      PriceRangeValidator.new
+      PriceRangeValidator.new,
+      BargainingValidator.new
     ]
   end
 end
