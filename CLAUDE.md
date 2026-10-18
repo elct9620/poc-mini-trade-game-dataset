@@ -27,6 +27,7 @@ CSV files (`train.csv`, `test.csv`) contain:
 - `relationship_status`: Hostile, Neutral, Friendly, or Allied
 - `input`: Player's message/prompt
 - `output`: NPC's JSON response
+- `round`, `patience`, `counter_price`, `best_offer`, `last_offer`, `intent`, `rude`, `player_offer`: bargaining turn state and extraction labels; empty on single-turn rows
 
 ## Output Format
 
@@ -95,6 +96,9 @@ Friendship change depends only on the player's behavior, never on the relationsh
 - High price offer: +1
 - Threat or attempted theft: -3 (replaces the other effects)
 
+### Bargaining
+Multi-turn haggling keeps the model single-turn: the game holds the negotiation state, locks prices when it starts, and computes each counter price, while the model extracts the player's intent and offer, then replies. Rules, prompts, and the TLA+ model of a turn are in `docs/features/bargaining.md`; bargaining rows must follow its turn outcomes.
+
 ## System Prompt Template
 
 When generating examples, use this system prompt:
@@ -136,10 +140,12 @@ The codebase follows a modular validation architecture with separation of concer
     |- dataset.rb            # Dataset CSV loader
     |- validation.rb         # Validation usecase orchestrator
     |- chat_format.rb        # System prompt and chat messages for a row
+    |- negotiation.rb        # Bargaining prices and the game step of a turn
     |- conversion.rb         # Conversion usecase
     |- evaluation/           # Model evaluation tool (not part of the dataset)
 |- spec/                     # RSpec tests mirror lib/ structure
 |- docs/features/            # Dataset features with acceptance criteria
+    |- bargaining/           # Bargaining prompts and TLA+ model of a turn
 |- docs/tools/               # Tools for dataset consumers (model evaluation)
 ```
 
@@ -211,6 +217,7 @@ bundle exec ruby bin/validate path/to/file.csv
 - Price > 0 for sell/negotiate actions
 - Friendship change between -3 and 3
 - Price ranges based on rarity and relationship (see detailed rules in `docs/features/validation.md`)
+- Bargaining rows match the turn outcome computed from their state (see `docs/features/bargaining.md`)
 
 Exit code 0 = valid; exit code 1 = errors with detailed messages.
 

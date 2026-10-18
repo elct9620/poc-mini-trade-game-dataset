@@ -96,6 +96,10 @@ In the `output` JSON, if the `action` is `sell` or `negotiate`, the `price` in t
 | Epic   | Friendly            | price >= expected_price       |
 | Epic   | Allied              | price > 0                     |
 
+### Bargaining Rows
+
+A row with `round` filled must also follow the turn outcomes in [bargaining](bargaining.md#validation).
+
 ## Acceptance Criteria
 
 - `bin/validate` command exists and is executable.

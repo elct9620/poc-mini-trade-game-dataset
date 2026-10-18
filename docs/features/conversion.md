@@ -10,7 +10,7 @@ bundle exec ruby bin/convert path/to/input.csv -o path/to/output.jsonl
 
 ## Output
 
-Each CSV row becomes one JSON line holding a `messages` array:
+Each single-turn row becomes one JSON line holding a `messages` array; each [bargaining](bargaining.md#conversion) row becomes two, built from its own prompts:
 
 | Role        | Content                                                      |
 |-------------|--------------------------------------------------------------|
@@ -38,7 +38,7 @@ Every asking price satisfies the minimum price rules in [validation](validation.
 
 ## Acceptance Criteria
 
-- `bin/convert` writes one JSON line per CSV row.
+- `bin/convert` writes one JSON line per single-turn row and two per bargaining row.
 - The `system` message contains the row's item name, rarity, expected price, asking price, and relationship status.
 - The `assistant` message equals the row's `output` column.
 - Missing arguments or a missing input file print an error and exit with code `1`.
