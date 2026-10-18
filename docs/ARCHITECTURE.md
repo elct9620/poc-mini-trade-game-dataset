@@ -18,6 +18,7 @@ In this project, the scripts help validate and convert the dataset, plus a separ
     |- validation.rb   # The usecase to validate the dataset
     |- chat_format.rb  # System prompt and chat messages for a row
     |- negotiation.rb  # Bargaining prices and the game step of a turn
+    |- bargaining_format.rb # Extraction and response prompts of a bargaining turn
     |- conversion.rb   # The usecase to convert the dataset
     |- evaluation/     # Model evaluation tool
         |- evaluation.rb       # The usecase to score a model

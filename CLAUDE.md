@@ -141,6 +141,7 @@ The codebase follows a modular validation architecture with separation of concer
     |- validation.rb         # Validation usecase orchestrator
     |- chat_format.rb        # System prompt and chat messages for a row
     |- negotiation.rb        # Bargaining prices and the game step of a turn
+    |- bargaining_format.rb  # Extraction and response prompts of a bargaining turn
     |- conversion.rb         # Conversion usecase
     |- evaluation/           # Model evaluation tool (not part of the dataset)
 |- spec/                     # RSpec tests mirror lib/ structure
