@@ -56,7 +56,8 @@ class Diversity
       'message' => Text.normalize(output['message'], row['item_name']),
       'relationship' => row['relationship_status'], 'action' => output['action'],
       'friendship_change' => output.dig('parameters', 'friendship_change').to_s,
-      'bargaining' => !row['round'].to_s.empty?, 'intent' => row['intent'], 'rude' => row['rude']
+      'bargaining' => !row['round'].to_s.empty?, 'intent' => row['intent'], 'rude' => row['rude'],
+      'offer' => row['player_offer'], 'counter' => row['counter_price']
     }
   end
 
@@ -133,7 +134,10 @@ class Diversity
   end
 
   def offer_outcome
-    offers = @entries.select { |entry| entry['bargaining'] && entry['intent'] == 'offer' && entry['rude'] != 'true' }
+    # An offer equal to the counter accepts it, so its accepting words rightly give the deal away.
+    offers = @entries.select do |entry|
+      entry['bargaining'] && entry['intent'] == 'offer' && entry['rude'] != 'true' && entry['offer'] != entry['counter']
+    end
     probe = Probe.new(offers.map { |entry| entry['input'] }, offers.map { |entry| entry['action'] })
     return skipped unless probe.measurable?
 
