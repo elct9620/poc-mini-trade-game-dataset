@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# link:docs/tools/diversity.md
+# Command-line tool to measure the wording diversity of a dataset CSV.
+
+require 'json'
+require 'optparse'
+require_relative '../lib/dataset'
+require_relative '../lib/diversity/diversity'
+require_relative '../lib/diversity/embedding_client'
+
+usage = 'Usage: bundle exec ruby bin/diversity path/to/batch.csv [options]'
+options = { against: nil, endpoint: nil, model: 'google/embedding-gemma-300m' }
+
+OptionParser.new do |opts|
+  opts.banner = usage
+  opts.on('-a', '--against PATH', 'Reference split the measured rows must not repeat') { |path| options[:against] = path }
+  opts.on('-e', '--embedding-endpoint URL', 'OpenAI-compatible base URL serving an embedding model') do |url|
+    options[:endpoint] = url
+  end
+  opts.on('-m', '--embedding-model NAME', 'Embedding model name sent to the endpoint') { |name| options[:model] = name }
+end.parse!
+
+file_path = ARGV[0]
+
+if file_path.nil?
+  puts usage
+  exit 1
+end
+
+[file_path, options[:against]].compact.each do |path|
+  next if File.exist?(path)
+
+  puts "Error: File '#{path}' not found"
+  exit 1
+end
+
+against = options[:against] && Dataset.new(options[:against])
+embedder = options[:endpoint] && Diversity::EmbeddingClient.new(options[:endpoint], model: options[:model])
+
+begin
+  report = Diversity.new(Dataset.new(file_path), against: against, embedder: embedder).execute
+rescue Diversity::EmbeddingClient::Error, SystemCallError => e
+  puts "Error: #{e.message}"
+  exit 1
+end
+
+puts JSON.pretty_generate(report)
+exit(report['pass'] ? 0 : 1)

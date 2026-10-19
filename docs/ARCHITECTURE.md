@@ -1,16 +1,17 @@
 # Architecture
 
-This document outlines the architecture of the scripts that validate, convert, and evaluate against the dataset.
+This document outlines the architecture of the scripts that validate, convert, and evaluate against the dataset, and measure its wording diversity.
 
 ## Structure
 
-In this project, the scripts help validate and convert the dataset, plus a separate tool to evaluate models trained on it.
+In this project, the scripts help validate and convert the dataset, plus separate tools to measure its wording diversity and to evaluate models trained on it.
 
 ```
 |- bin/
     |- validate # Dataset: validate rows
     |- convert  # Dataset: export chat-format JSONL
     |- evaluate # Tool: score a served model
+    |- diversity # Tool: measure wording diversity
 |- lib/
     |- validator/      # Rule validators
     |- validator.rb    # The shared validator set
@@ -24,15 +25,21 @@ In this project, the scripts help validate and convert the dataset, plus a separ
         |- evaluation.rb       # The usecase to score a model
         |- inference_client.rb # OpenAI-compatible chat client
         |- response_schema.rb  # Guided decoding contract
+    |- diversity/      # Wording diversity tool
+        |- diversity.rb        # The usecase to measure a split
+        |- text.rb             # Item and amount normalisation
+        |- tfidf.rb            # Lexical nearest neighbours
+        |- probe.rb            # Label-from-wording classifier
+        |- embedding_client.rb # OpenAI-compatible embeddings client
 |- spec/ # RSpec tests mirroring lib/
 |- docs/
     |- features/ # Dataset features: usage, acceptance criteria
         |- bargaining/ # Bargaining prompts and the TLA+ model of a turn
-    |- tools/    # Tools for dataset consumers
+    |- tools/    # Tools for producing and using the dataset
     |- ARCHITECTURE.md # This document
 ```
 
-Dataset features (`validate`, `convert`) define and check the data. Tools (`evaluate`) help consumers use it and reuse the dataset rules without adding requirements to the data.
+Dataset features (`validate`, `convert`) define and check the data. Tools (`diversity`, `evaluate`) help produce or use it and reuse the dataset rules without adding requirements to the data.
 
 ## Dataset
 

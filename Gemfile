@@ -5,6 +5,7 @@ source 'https://rubygems.org'
 # gem "rails"
 
 gem 'csv'
+gem 'numo-narray-alt'
 gem 'rspec', '~> 3.13'
 
 gem 'simplecov', '~> 0.22.0', require: false

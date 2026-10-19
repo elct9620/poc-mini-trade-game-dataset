@@ -134,6 +134,7 @@ The codebase follows a modular validation architecture with separation of concer
     |- validate              # Dataset: check rows against the rules
     |- convert               # Dataset: export rows as chat-format JSONL
     |- evaluate              # Tool: score a served model against a split
+    |- diversity             # Tool: measure wording diversity of a split or generation batch
 |- lib/
     |- validator/            # Dataset rule validators
     |- validator.rb          # The shared validator set
@@ -144,13 +145,14 @@ The codebase follows a modular validation architecture with separation of concer
     |- bargaining_format.rb  # Extraction and response prompts of a bargaining turn
     |- conversion.rb         # Conversion usecase
     |- evaluation/           # Model evaluation tool (not part of the dataset)
+    |- diversity/            # Wording diversity tool (not part of the dataset)
 |- spec/                     # RSpec tests mirror lib/ structure
 |- docs/features/            # Dataset features with acceptance criteria
     |- bargaining/           # Bargaining prompts and TLA+ model of a turn
-|- docs/tools/               # Tools for dataset consumers (model evaluation)
+|- docs/tools/               # Tools for producing and using the dataset (diversity, model evaluation)
 ```
 
-Dataset features define and check the data itself. Tools help consumers use the dataset, such as scoring a fine-tuned model; they reuse the dataset rules but add no requirements to the data.
+Dataset features define and check the data itself. Tools help produce or use the dataset, such as gating a generation batch on wording diversity or scoring a fine-tuned model; they reuse the dataset rules but add no requirements to the data.
 
 **Design Pattern:**
 - **Dataset** (`lib/dataset.rb`): Loads and parses CSV files
@@ -190,13 +192,16 @@ bundle exec rspec spec/lib/csv_validator_spec.rb:42
 
 Test coverage reports are generated in `coverage/` using SimpleCov.
 
-### Conversion and Evaluation
+### Conversion, Evaluation, and Diversity
 ```bash
 # Export a split as chat-format JSONL for fine-tuning
 bundle exec ruby bin/convert train.csv -o train.jsonl
 
 # Score a model served on an OpenAI-compatible endpoint
 bundle exec ruby bin/evaluate test.csv --endpoint http://127.0.0.1:8080/v1 --json-schema
+
+# Gate a generation batch on wording diversity (embedding model served by LM Studio)
+bundle exec ruby bin/diversity batch.csv --against train.csv --embedding-endpoint http://127.0.0.1:1234/v1
 ```
 
 ### Validation
