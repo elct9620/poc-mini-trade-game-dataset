@@ -34,13 +34,15 @@ unless File.exist?(file_path)
   exit 1
 end
 
-response_format = if options[:json_schema]
-                    { 'type' => 'json_schema', 'json_schema' => { 'name' => 'npc_reply', 'schema' => Evaluation::RESPONSE_SCHEMA } }
-                  end
-client = Evaluation::InferenceClient.new(options[:endpoint], response_format: response_format)
+guide = lambda do |name, schema|
+  { 'type' => 'json_schema', 'json_schema' => { 'name' => name, 'schema' => schema } } if options[:json_schema]
+end
+client = Evaluation::InferenceClient.new(options[:endpoint], response_format: guide.call('npc_reply', Evaluation::RESPONSE_SCHEMA))
+extraction_client = Evaluation::InferenceClient.new(options[:endpoint],
+                                                    response_format: guide.call('extraction', Evaluation::EXTRACTION_SCHEMA))
 
 begin
-  results = Evaluation.new(Dataset.new(file_path), client, Validator.all).execute
+  results = Evaluation.new(Dataset.new(file_path), client, Validator.all, extraction_client: extraction_client).execute
 rescue Evaluation::InferenceClient::Error, SystemCallError => e
   puts "Error: #{e.message}"
   exit 1

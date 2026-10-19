@@ -11,7 +11,7 @@ bundle exec ruby bin/evaluate test.csv --endpoint http://127.0.0.1:8888/v1 [--js
 | Option          | Purpose                                                                 |
 |-----------------|-------------------------------------------------------------------------|
 | `--endpoint`    | OpenAI-compatible base URL serving the model                            |
-| `--json-schema` | Send the NPC reply schema as `response_format` (guided decoding)        |
+| `--json-schema` | Send the reply schema of each call as `response_format` (guided decoding) |
 | `--report`      | Write each row's reply, rule errors, and actions as JSONL               |
 
 The prompt is built by the same system prompt as [conversion](../features/conversion.md). Replies use greedy decoding (`temperature: 0`) so runs are reproducible.
@@ -27,8 +27,11 @@ The prompt is built by the same system prompt as [conversion](../features/conver
 | `intent_match` | Bargaining rows: the extraction reply's `intent` equals the `intent` column |
 | `rude_match`   | Bargaining rows: the extraction reply's `rude` equals the `rude` column |
 | `offer_match`  | Bargaining rows: the extraction reply's `player_offer` equals the `player_offer` column |
+| `deal_match`   | Bargaining rows whose reference action is `sell`: the reply sells at the reference price |
 
-A [bargaining](../features/bargaining.md#evaluation) row takes two calls: the extraction call, then the response call built from the row's reference labels. The response reply counts toward the first four metrics like a single-turn reply. Each metric is reported as a rate between 0 and 1 together with `total`; the extraction metrics count bargaining rows only. The summary also reports `latency_mean` and `latency_p95`, the seconds each reply took including the HTTP round trip.
+A [bargaining](../features/bargaining.md#evaluation) row takes two calls: the extraction call, then the response call built from the row's reference labels. The response reply counts toward the first four metrics like a single-turn reply. Each metric is reported as a rate between 0 and 1 together with `total`; the extraction metrics and `deal_match` count bargaining rows only. The summary also reports `latency_mean` and `latency_p95`, the seconds each row took including the HTTP round trips, so a bargaining row's latency is a whole turn of two calls.
+
+The summary repeats `total` and the first four metrics under `single` and `bargaining`, because a checkpoint can gain on bargaining while losing single-turn accuracy, and the overall rate hides it.
 
 `action_match` is a proxy: a different action can still be reasonable, so a low rate calls for reading the report rather than failing the model outright.
 
@@ -38,4 +41,6 @@ A [bargaining](../features/bargaining.md#evaluation) row takes two calls: the ex
 - A reply that is not a JSON object counts as failing `json_valid` and `rule_pass`.
 - Rule errors use the same validators as `bin/validate`.
 - Bargaining rows report `intent_match`, `rude_match`, and `offer_match` from the extraction call; an extraction reply that is not a JSON object fails all three.
+- With `--json-schema`, the extraction call is constrained by the extraction reply schema and the response call by the NPC reply schema.
+- The summary reports the response metrics separately for single-turn and bargaining rows, and `deal_match` for bargaining rows that should sell.
 - An unreachable endpoint or a non-success response prints an error and exits with code `1`.

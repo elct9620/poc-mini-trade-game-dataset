@@ -2,7 +2,8 @@
 
 ##
 # = Evaluation::RESPONSE_SCHEMA
-# JSON schema of the NPC reply, sent as the guided decoding contract when evaluating a served model.
+# JSON schemas of the NPC reply and the bargaining extraction reply, sent as guided decoding contracts
+# when evaluating a served model.
 #
 # == Reference
 # - {docs/tools/evaluation.md}[docs/tools/evaluation.md]
@@ -41,5 +42,16 @@ class Evaluation
         'required' => %w[action message parameters]
       }
     ]
+  }.freeze
+
+  # JSON schema of the bargaining extraction reply; an offer is a positive integer or null.
+  EXTRACTION_SCHEMA = {
+    'type' => 'object',
+    'properties' => {
+      'intent' => { 'type' => 'string', 'enum' => %w[offer haggle chat threat] },
+      'rude' => { 'type' => 'boolean' },
+      'player_offer' => { 'anyOf' => [{ 'type' => 'integer', 'minimum' => 1 }, { 'type' => 'null' }] }
+    },
+    'required' => %w[intent rude player_offer]
   }.freeze
 end
