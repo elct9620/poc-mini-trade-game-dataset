@@ -80,9 +80,9 @@ RSpec.describe Evaluation do
         'relationship_status' => 'Neutral', 'input' => '62金幣，我買了。',
         'output' => '{"action":"sell","message":"成交","parameters":{"price":62,"friendship_change":1}}',
         'round' => '2', 'patience' => '3', 'counter_price' => '60', 'best_offer' => '50', 'last_offer' => '50',
-        'intent' => 'offer', 'rude' => 'false', 'player_offer' => '62' }
+        'intent' => 'offer', 'rude' => 'none', 'player_offer' => '62' }
     end
-    let(:extraction) { '{"intent":"offer","rude":false,"player_offer":62}' }
+    let(:extraction) { '{"intent":"offer","rude":"none","player_offer":62}' }
     let(:reply) { '{"action":"sell","message":"好，62金幣","parameters":{"price":62,"friendship_change":1}}' }
 
     context 'when both calls follow the reference' do
@@ -98,7 +98,7 @@ RSpec.describe Evaluation do
     end
 
     context 'when the extraction misreads the offer' do
-      let(:extraction) { '{"intent":"offer","rude":false,"player_offer":60}' }
+      let(:extraction) { '{"intent":"offer","rude":"none","player_offer":60}' }
 
       it { expect(result['offer_match']).to be(false) }
     end

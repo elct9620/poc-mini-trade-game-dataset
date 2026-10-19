@@ -136,7 +136,7 @@ class Diversity
   def offer_outcome
     # An offer equal to the counter accepts it, so its accepting words rightly give the deal away.
     offers = @entries.select do |entry|
-      entry['bargaining'] && entry['intent'] == 'offer' && entry['rude'] != 'true' && entry['offer'] != entry['counter']
+      entry['bargaining'] && entry['intent'] == 'offer' && entry['rude'] == 'none' && entry['offer'] != entry['counter']
     end
     probe = Probe.new(offers.map { |entry| entry['input'] }, offers.map { |entry| entry['action'] })
     return skipped unless probe.measurable?

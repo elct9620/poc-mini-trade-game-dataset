@@ -8,7 +8,7 @@ RSpec.describe BargainingFormat do
   let(:row) do
     { 'item_name' => '長劍', 'item_rarity' => 'Epic', 'item_expected_price' => '40', 'relationship_status' => 'Neutral',
       'input' => '56金幣', 'output' => '{"action":"sell"}', 'round' => '3', 'patience' => '3', 'counter_price' => '58',
-      'best_offer' => '50', 'last_offer' => '50', 'intent' => 'offer', 'rude' => 'false', 'player_offer' => '56' }
+      'best_offer' => '50', 'last_offer' => '50', 'intent' => 'offer', 'rude' => 'none', 'player_offer' => '56' }
   end
 
   describe '.bargaining?' do
@@ -41,6 +41,19 @@ RSpec.describe BargainingFormat do
     end
   end
 
+  describe '.previous_turn' do
+    context 'when the turn opens the negotiation' do
+      it { expect(described_class.previous_turn(row)).to eq('none') }
+    end
+
+    context 'when the negotiation has a previous turn' do
+      it do
+        expect(described_class.previous_turn(row.merge('previous_input' => '50金幣', 'previous_reply' => '58金幣吧。')))
+          .to eq('Player said "50金幣" and you replied "58金幣吧。".')
+      end
+    end
+  end
+
   describe '.extraction_conversation' do
     subject(:messages) { described_class.extraction_conversation(row) }
 
@@ -48,7 +61,8 @@ RSpec.describe BargainingFormat do
       expect(messages.first['content']).to include('- Counter Price: 58', '- Item: 長劍')
     end
 
-    it { expect(messages.last['content']).to eq('{"intent":"offer","rude":false,"player_offer":56}') }
+    it { expect(messages.first['content']).to include('- Previous Turn: none') }
+    it { expect(messages.last['content']).to eq('{"intent":"offer","rude":"none","player_offer":56}') }
   end
 
   describe '.response_conversation' do
@@ -57,6 +71,10 @@ RSpec.describe BargainingFormat do
     it 'is expected to show the state after the game step' do
       expect(messages.first['content']).to include('- Opening Price: 60', '- Player Offer: 56',
                                                    '- Counter Price: 55', '- Patience: 3', '- Round: 3')
+    end
+
+    it 'is expected to state the outcome with the price to use' do
+      expect(messages.first['content']).to include('- Outcome: deal at 56')
     end
 
     it { expect(messages.last['content']).to eq('{"action":"sell"}') }

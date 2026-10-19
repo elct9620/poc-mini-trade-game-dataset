@@ -27,7 +27,7 @@ CSV files (`train.csv`, `test.csv`) contain:
 - `relationship_status`: Hostile, Neutral, Friendly, or Allied
 - `input`: Player's message/prompt
 - `output`: NPC's JSON response
-- `round`, `patience`, `counter_price`, `best_offer`, `last_offer`, `intent`, `rude`, `player_offer`: bargaining turn state and extraction labels; empty on single-turn rows
+- `round`, `patience`, `counter_price`, `best_offer`, `last_offer`, `intent`, `rude`, `player_offer`, `previous_input`, `previous_reply`: bargaining turn state, extraction labels, and the previous turn; empty on single-turn rows
 
 ## Output Format
 

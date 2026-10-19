@@ -13,7 +13,7 @@ RSpec.describe Validator::BargainingValidator do
       {
         'item_rarity' => 'Common', 'item_expected_price' => '10', 'relationship_status' => 'Neutral',
         'round' => '2', 'patience' => '3', 'counter_price' => '13', 'best_offer' => '8', 'last_offer' => '8',
-        'intent' => 'offer', 'rude' => 'false', 'player_offer' => '9',
+        'intent' => 'offer', 'rude' => 'none', 'player_offer' => '9',
         'output' => reply('negotiate', 12)
       }
     end
@@ -82,7 +82,7 @@ RSpec.describe Validator::BargainingValidator do
       let(:row) { with('rude' => 'yes') }
 
       it 'is expected to raise ValidationError' do
-        expect { validation_result }.to raise_error(ValidationError, "'rude' must be true or false")
+        expect { validation_result }.to raise_error(ValidationError, "'rude' must be none, mild, or severe")
       end
     end
 
@@ -91,6 +91,14 @@ RSpec.describe Validator::BargainingValidator do
 
       it 'is expected to raise ValidationError' do
         expect { validation_result }.to raise_error(ValidationError, "'player_offer' must be set only for intent 'offer'")
+      end
+    end
+
+    context 'when only the previous player line is filled' do
+      let(:row) { with('previous_input' => '50金幣', 'previous_reply' => '') }
+
+      it 'is expected to raise ValidationError' do
+        expect { validation_result }.to raise_error(ValidationError, "'previous_input' and 'previous_reply' must be set together")
       end
     end
 
@@ -159,7 +167,7 @@ RSpec.describe Validator::BargainingValidator do
     end
 
     context 'when a rude turn reaches a Neutral merchant' do
-      let(:row) { with('rude' => 'true', 'output' => reply('refuse', nil, -1)) }
+      let(:row) { with('rude' => 'severe', 'output' => reply('refuse', nil, -1)) }
 
       it { is_expected.to be true }
     end

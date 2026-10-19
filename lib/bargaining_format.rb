@@ -20,11 +20,12 @@ module BargainingFormat
     - Item: %<item_name>s
     - Counter Price: %<counter_price>s
     - Last Exchange: %<last_exchange>s
+    - Previous Turn: %<previous_turn>s
 
     You must respond with a JSON object with the following format:
     {
       "intent": "offer" | "haggle" | "chat" | "threat",
-      "rude": boolean (true if the message is rude or disrespectful),
+      "rude": "none" | "mild" | "severe" (mild: disparaging the goods or price, sharp or impatient tone; severe: insults, cursing, or demanding it for free),
       "player_offer": number (the price the player offers, the counter price when the player accepts it, or null unless intent is "offer")
     }
   PROMPT
@@ -45,7 +46,9 @@ module BargainingFormat
     - Player Offer: %<player_offer>s
     - Counter Price: %<next_counter>s
     - Patience: %<next_patience>s
+    - Outcome: %<outcome>s
     - Last Exchange: %<last_exchange>s
+    - Previous Turn: %<previous_turn>s
 
     You must respond with a JSON object with the following format:
     {
@@ -70,7 +73,8 @@ module BargainingFormat
     [
       { 'role' => 'system', 'content' => format(EXTRACTION_PROMPT, item_name: row['item_name'],
                                                                    counter_price: row['counter_price'],
-                                                                   last_exchange: last_exchange(row)) },
+                                                                   last_exchange: last_exchange(row),
+                                                                   previous_turn: previous_turn(row)) },
       { 'role' => 'user', 'content' => row['input'] },
       { 'role' => 'assistant', 'content' => JSON.generate(extraction_reply(row)) }
     ]
@@ -88,7 +92,7 @@ module BargainingFormat
   # Returns the extraction labels of a row as the reply the extraction call should give.
   def extraction_reply(row)
     offer = row['player_offer'].to_s.strip
-    { 'intent' => row['intent'], 'rude' => row['rude'] == 'true', 'player_offer' => offer.empty? ? nil : offer.to_i }
+    { 'intent' => row['intent'], 'rude' => row['rude'], 'player_offer' => offer.empty? ? nil : offer.to_i }
   end
 
   # Returns the one-sentence summary of the negotiation before the turn.
@@ -102,6 +106,23 @@ module BargainingFormat
     "You agreed to sell at #{deal_price}; the player has not bought it yet."
   end
 
+  # Returns the previous turn of the negotiation quoted for context, or none on the first turn.
+  def previous_turn(row)
+    said = row['previous_input'].to_s.strip
+    return 'none' if said.empty?
+
+    "Player said \"#{said}\" and you replied \"#{row['previous_reply'].to_s.strip}\"."
+  end
+
+  # Returns the game step's outcome with the price the reply must use, so the model need not compare numbers.
+  def outcome(turn)
+    case turn[:outcome]
+    when :deal then "deal at #{turn[:price]}"
+    when :counter then "counter at #{turn[:price]}"
+    else turn[:outcome].to_s
+    end
+  end
+
   def response_prompt(row)
     turn = Negotiation.turn(row)
     offer = row['player_offer'].to_s.strip
@@ -110,8 +131,9 @@ module BargainingFormat
                             opening_price: Negotiation.prices(row)[:opening],
                             relationship_status: row['relationship_status'], round: row['round'],
                             player_offer: offer.empty? ? 'none' : offer, next_counter: turn[:counter],
-                            next_patience: turn[:patience], last_exchange: last_exchange(row))
+                            next_patience: turn[:patience], outcome: outcome(turn), last_exchange: last_exchange(row),
+                            previous_turn: previous_turn(row))
   end
 
-  private_class_method :response_prompt
+  private_class_method :response_prompt, :outcome
 end

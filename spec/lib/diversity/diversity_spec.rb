@@ -71,7 +71,7 @@ RSpec.describe Diversity do
 
     context 'when the wording of bargaining offers gives the outcome away' do
       let(:rows) do
-        offer = { 'round' => '2', 'intent' => 'offer', 'rude' => 'false', 'counter_price' => '95' }
+        offer = { 'round' => '2', 'intent' => 'offer', 'rude' => 'none', 'counter_price' => '95' }
         deals = Array.new(10) do |index|
           row("行，就#{100 + index}金幣。", action: 'sell', bargaining: offer.merge('player_offer' => (100 + index).to_s))
         end
@@ -86,7 +86,7 @@ RSpec.describe Diversity do
 
     context 'when only offers that accept the counter use accepting words' do
       let(:rows) do
-        offer = { 'round' => '2', 'intent' => 'offer', 'rude' => 'false', 'counter_price' => '100' }
+        offer = { 'round' => '2', 'intent' => 'offer', 'rude' => 'none', 'counter_price' => '100' }
         accepts = Array.new(10) { row('好，就照你說的。', action: 'sell', bargaining: offer.merge('player_offer' => '100')) }
         counters = Array.new(10) do |index|
           row("#{50 + index}金幣可以嗎？", action: index.even? ? 'sell' : 'negotiate', bargaining: offer.merge('player_offer' => '90'))

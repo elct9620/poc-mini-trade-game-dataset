@@ -114,8 +114,8 @@ RSpec.describe Validation do
         csv_content = <<~CSV
           id,item_name,item_rarity,item_expected_price,relationship_status,input,output,round,patience,counter_price,best_offer,last_offer,intent,rude,player_offer
           1,Basket,Common,10,Neutral,我要買,"{""action"":""sell"",""message"":""好"",""parameters"":{""price"":10,""friendship_change"":0}}",,,,,,,,
-          2,Basket,Common,10,Neutral,9金幣,"{""action"":""negotiate"",""message"":""12金幣"",""parameters"":{""price"":12,""friendship_change"":0}}",2,3,13,8,8,offer,false,9
-          3,Basket,Common,10,Neutral,9金幣,"{""action"":""sell"",""message"":""好"",""parameters"":{""price"":13,""friendship_change"":0}}",2,3,13,8,8,offer,false,9
+          2,Basket,Common,10,Neutral,9金幣,"{""action"":""negotiate"",""message"":""12金幣"",""parameters"":{""price"":12,""friendship_change"":0}}",2,3,13,8,8,offer,none,9
+          3,Basket,Common,10,Neutral,9金幣,"{""action"":""sell"",""message"":""好"",""parameters"":{""price"":13,""friendship_change"":0}}",2,3,13,8,8,offer,none,9
         CSV
         tempfile.write(csv_content)
         tempfile.rewind

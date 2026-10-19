@@ -49,7 +49,7 @@ class Evaluation
     'type' => 'object',
     'properties' => {
       'intent' => { 'type' => 'string', 'enum' => %w[offer haggle chat threat] },
-      'rude' => { 'type' => 'boolean' },
+      'rude' => { 'type' => 'string', 'enum' => %w[none mild severe] },
       'player_offer' => { 'anyOf' => [{ 'type' => 'integer', 'minimum' => 1 }, { 'type' => 'null' }] }
     },
     'required' => %w[intent rude player_offer]

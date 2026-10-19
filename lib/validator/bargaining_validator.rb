@@ -48,10 +48,13 @@ module Validator
 
         raise ValidationError, "'#{column}' must be a positive integer"
       end
-      raise ValidationError, "'rude' must be true or false" unless %w[true false].include?(row['rude'])
-      return if blank?(row['player_offer']) == (row['intent'] != 'offer')
+      raise ValidationError, "'rude' must be none, mild, or severe" unless Negotiation::RUDE_LEVELS.include?(row['rude'])
+      unless blank?(row['player_offer']) == (row['intent'] != 'offer')
+        raise ValidationError, "'player_offer' must be set only for intent 'offer'"
+      end
+      return if blank?(row['previous_input']) == blank?(row['previous_reply'])
 
-      raise ValidationError, "'player_offer' must be set only for intent 'offer'"
+      raise ValidationError, "'previous_input' and 'previous_reply' must be set together"
     end
 
     def validate_state(row)

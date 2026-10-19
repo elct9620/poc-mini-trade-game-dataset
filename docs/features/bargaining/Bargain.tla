@@ -3,7 +3,8 @@
 (* Each turn the game learns the player's intent and offer, then answers    *)
 (* with a reciprocal concession bounded by the floor; patience ends         *)
 (* stalling, a threat ends the negotiation, and chat changes nothing.       *)
-(* Rudeness ends it unless the merchant is a friend, who lets it pass.      *)
+(* Rudeness beyond the merchant's tolerance ends it; within it, the turn    *)
+(* counts as its intent. Hostile tolerates none, Neutral mild, friends all. *)
 (* A deal only offers the item at the deal price: buying ends the           *)
 (* negotiation, and any other turn declines and bargaining goes on.         *)
 EXTENDS Naturals
@@ -18,10 +19,11 @@ CONSTANTS
     AlphaDen,
     ProgressStep,   \* smallest raise that counts as progress, in coins
     SellAtCounter,  \* TRUE: friends sell at the counter even when offered more
-    TolerateRude,   \* TRUE: friends treat a rude turn like its intent
+    RudeTolerance,  \* highest rudeness the merchant lets pass: "none", "mild", or "severe"
     MaxOffer        \* largest offer the model checker tries
 
-ASSUME /\ Floor > 0 /\ Opening >= Floor /\ Patience > 0
+ASSUME /\ RudeTolerance \in {"none", "mild", "severe"}
+       /\ Floor > 0 /\ Opening >= Floor /\ Patience > 0
        /\ AlphaDen > 0 /\ ProgressStep > 0 /\ MaxStep >= MinStep
 
 VARIABLES phase, counter, patience, bestOffer, lastOffer, price, round
@@ -113,11 +115,14 @@ Threat == Bargaining /\ round' = round + 1 /\ Walkaway
 
 \* A rude turn ends the negotiation for a merchant who does not tolerate it;
 \* a tolerant merchant answers the turn's intent, so Offer, Haggle and Chat cover it.
-Rude == ~TolerateRude /\ Bargaining /\ round' = round + 1 /\ Walkaway
+Severity(level) == IF level = "none" THEN 0 ELSE IF level = "mild" THEN 1 ELSE 2
+
+\* Rudeness beyond the tolerance ends the negotiation; a tolerated rude turn is an Offer, Haggle or Chat.
+Rude(level) == Severity(level) > Severity(RudeTolerance) /\ Bargaining /\ round' = round + 1 /\ Walkaway
 
 Done == ~Bargaining /\ UNCHANGED vars   \* a finished negotiation stays finished
 
-Next == (\E o \in 1..MaxOffer : Offer(o)) \/ Haggle \/ Chat \/ Buy \/ Threat \/ Rude \/ Done
+Next == (\E o \in 1..MaxOffer : Offer(o)) \/ Haggle \/ Chat \/ Buy \/ Threat \/ (\E level \in {"mild", "severe"} : Rude(level)) \/ Done
 
 Spec == Init /\ [][Next]_vars /\ WF_vars(Next)
 

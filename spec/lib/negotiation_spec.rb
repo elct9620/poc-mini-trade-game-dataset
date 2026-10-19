@@ -12,7 +12,7 @@ RSpec.describe Negotiation do
 
   def turn_row(base, state)
     base.merge({ 'round' => '2', 'patience' => '3', 'counter_price' => '60', 'best_offer' => '50',
-                 'last_offer' => '50', 'intent' => 'offer', 'rude' => 'false', 'player_offer' => '' }.merge(state))
+                 'last_offer' => '50', 'intent' => 'offer', 'rude' => 'none', 'player_offer' => '' }.merge(state))
   end
 
   describe '.prices' do
@@ -186,7 +186,22 @@ RSpec.describe Negotiation do
     end
 
     context 'when a Neutral merchant meets rudeness' do
-      let(:row) { turn_row(epic_neutral, 'rude' => 'true', 'player_offer' => '56') }
+      let(:row) { turn_row(epic_neutral, 'rude' => 'severe', 'player_offer' => '56') }
+
+      it { is_expected.to include(outcome: :walkaway, action: 'refuse') }
+    end
+
+    context 'when a Neutral merchant meets mild rudeness' do
+      let(:row) { turn_row(epic_neutral, 'rude' => 'mild', 'player_offer' => '56') }
+
+      it { is_expected.to include(outcome: :counter, action: 'negotiate') }
+    end
+
+    context 'when a Hostile merchant meets mild rudeness' do
+      let(:row) do
+        turn_row({ 'item_rarity' => 'Common', 'item_expected_price' => '10', 'relationship_status' => 'Hostile' },
+                 'counter_price' => '17', 'best_offer' => '13', 'last_offer' => '13', 'rude' => 'mild', 'player_offer' => '14')
+      end
 
       it { is_expected.to include(outcome: :walkaway, action: 'refuse') }
     end
@@ -194,7 +209,7 @@ RSpec.describe Negotiation do
     context 'when an Allied merchant meets rudeness' do
       let(:row) do
         turn_row({ 'item_rarity' => 'Common', 'item_expected_price' => '14', 'relationship_status' => 'Allied' },
-                 'counter_price' => '11', 'best_offer' => '8', 'last_offer' => '8', 'rude' => 'true', 'player_offer' => '9')
+                 'counter_price' => '11', 'best_offer' => '8', 'last_offer' => '8', 'rude' => 'severe', 'player_offer' => '9')
       end
 
       it 'is expected to answer the offer as usual' do

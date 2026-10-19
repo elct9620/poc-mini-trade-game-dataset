@@ -18,11 +18,12 @@ Bargaining:
 - Item: {item_name}
 - Counter Price: {counter_price}
 - Last Exchange: {last_exchange}
+- Previous Turn: {previous_turn}
 
 You must respond with a JSON object with the following format:
 {
   "intent": "offer" | "haggle" | "chat" | "threat",
-  "rude": boolean (true if the message is rude or disrespectful),
+  "rude": "none" | "mild" | "severe" (mild: disparaging the goods or price, sharp or impatient tone; severe: insults, cursing, or demanding it for free),
   "player_offer": number (the price the player offers, the counter price when the player accepts it, or null unless intent is "offer")
 }
 ```
@@ -34,7 +35,7 @@ The reply carries the row's stage-1 labels. Each field takes its value from the 
 | Field          | Column         | Value                                      |
 |----------------|----------------|--------------------------------------------|
 | `intent`       | `intent`       | `offer`, `haggle`, `chat`, or `threat`     |
-| `rude`         | `rude`         | `true` or `false`                          |
+| `rude`         | `rude`         | `none`, `mild`, or `severe`                |
 | `player_offer` | `player_offer` | Positive integer for `offer`, else `null`  |
 
 ## Response Prompt
@@ -57,7 +58,9 @@ Bargaining:
 - Player Offer: {player_offer or "none"}
 - Counter Price: {next_counter}
 - Patience: {next_patience}
+- Outcome: {outcome}
 - Last Exchange: {last_exchange}
+- Previous Turn: {previous_turn}
 
 You must respond with a JSON object with the following format:
 {
@@ -81,3 +84,24 @@ Both prompts summarise the negotiation so far in one sentence. The sentence depe
 | `last_offer` at or above `counter_price` | `You agreed to sell at {deal_price}; the player has not bought it yet.` |
 
 A last offer meets the counter only after a deal the player declined. `{deal_price}` is `counter_price` for Friendly and Allied merchants and `last_offer` otherwise, the price that deal offered.
+
+## Previous Turn
+
+Both prompts quote the turn before this one in the same negotiation, so a short line such as 真的嗎？ or 不夠 is read against what was just said. It comes from the row's `previous_input` and `previous_reply` columns.
+
+| State before the turn | Sentence |
+|-----------------------|----------|
+| First turn of the negotiation | `none` |
+| Otherwise | `Player said "{previous_input}" and you replied "{previous_reply}".` |
+
+## Outcome
+
+The response prompt states the game step's outcome, so the reply follows the game instead of comparing the offer with the counter itself. The price is the one the reply must use.
+
+| Game step | Outcome |
+|-----------|---------|
+| Deal | `deal at {price}` |
+| Counter | `counter at {price}` |
+| Walkaway | `walkaway` |
+| Chat | `chat` |
+

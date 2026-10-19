@@ -111,7 +111,7 @@ class Evaluation
     offer = row['player_offer'].to_s.strip
     {
       'intent_match' => !extraction.nil? && extraction['intent'] == row['intent'],
-      'rude_match' => !extraction.nil? && extraction['rude'] == (row['rude'] == 'true'),
+      'rude_match' => !extraction.nil? && extraction['rude'] == row['rude'],
       'offer_match' => !extraction.nil? && extraction['player_offer'] == (offer.empty? ? nil : offer.to_i)
     }
   end

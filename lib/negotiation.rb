@@ -22,8 +22,11 @@ module Negotiation
   ALLIED_FLOOR_SHARE = Rational(1, 2)
   MAX_STEP_SHARE = Rational(1, 4)
   PROGRESS_SHARE = Rational(1, 20)
-  # Friends sell at the counter when offered more and let rudeness pass.
+  # Friends sell at the counter when offered more.
   FRIENDS = %w[Friendly Allied].freeze
+  # The highest rudeness each merchant lets pass; anything ruder ends the negotiation.
+  RUDE_TOLERANCE = { 'Hostile' => 'none', 'Neutral' => 'mild', 'Friendly' => 'severe', 'Allied' => 'severe' }.freeze
+  RUDE_LEVELS = %w[none mild severe].freeze
   REPLY_ACTIONS = { deal: 'sell', counter: 'negotiate', walkaway: 'refuse', chat: 'talk' }.freeze
 
   module_function
@@ -59,20 +62,25 @@ module Negotiation
       best_offer: row['best_offer'].to_s.empty? ? nil : row['best_offer'].to_i,
       last_offer: row['last_offer'].to_s.empty? ? nil : row['last_offer'].to_i,
       intent: row['intent'],
-      rude: row['rude'] == 'true',
+      rude: row['rude'],
       offer: row['player_offer'].to_i
     }
   end
 
   def outcome_of(state, prices, params)
     return walkaway(state) if state[:intent] == 'threat'
-    return walkaway(state) if state[:rude] && !FRIENDS.include?(state[:relationship])
+    return walkaway(state) if too_rude?(state)
 
     case state[:intent]
     when 'chat' then { outcome: :chat, price: nil, counter: state[:counter], patience: state[:patience] }
     when 'haggle' then haggle(state)
     else offer(state, prices, params)
     end
+  end
+
+  # Rudeness beyond the merchant's tolerance ends the negotiation; tolerated rudeness follows the turn's intent.
+  def too_rude?(state)
+    RUDE_LEVELS.index(state[:rude]).to_i > RUDE_LEVELS.index(RUDE_TOLERANCE.fetch(state[:relationship]))
   end
 
   # Haggling without a price is free only in the first round and never earns a concession.
@@ -137,5 +145,5 @@ module Negotiation
     { outcome: :walkaway, price: nil, counter: state[:counter], patience: 0 }
   end
 
-  private_class_method :parse, :outcome_of, :haggle, :offer, :deal, :declined?, :offer_raise, :concession, :walkaway
+  private_class_method :parse, :outcome_of, :too_rude?, :haggle, :offer, :deal, :declined?, :offer_raise, :concession, :walkaway
 end

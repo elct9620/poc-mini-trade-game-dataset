@@ -39,7 +39,7 @@ RSpec.describe Conversion do
       let(:dataset) do
         [{ 'item_name' => '長劍', 'item_rarity' => 'Epic', 'item_expected_price' => '40', 'relationship_status' => 'Neutral',
            'input' => '50金幣如何？', 'output' => '{"action":"negotiate"}', 'round' => '2', 'patience' => '3',
-           'counter_price' => '60', 'best_offer' => '', 'last_offer' => '', 'intent' => 'offer', 'rude' => 'false',
+           'counter_price' => '60', 'best_offer' => '', 'last_offer' => '', 'intent' => 'offer', 'rude' => 'none',
            'player_offer' => '50' }]
       end
 
@@ -48,7 +48,7 @@ RSpec.describe Conversion do
       it 'is expected to write the extraction reply then the response reply' do
         execute
         expect(lines.map { |line| line['messages'].last['content'] })
-          .to eq(['{"intent":"offer","rude":false,"player_offer":50}', '{"action":"negotiate"}'])
+          .to eq(['{"intent":"offer","rude":"none","player_offer":50}', '{"action":"negotiate"}'])
       end
     end
 

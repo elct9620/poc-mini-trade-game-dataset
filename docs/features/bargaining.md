@@ -81,8 +81,10 @@ A bargaining row is a dataset row with `round` filled; single-turn rows leave ev
 | `counter_price` | State | Counter before the turn                      |
 | `best_offer`    | State | Best offer so far, empty before any offer    |
 | `last_offer`    | State | Most recent offer, empty before any offer    |
+| `previous_input` | State | Player line of the previous turn, empty on the first turn |
+| `previous_reply` | State | Merchant message of the previous turn, empty on the first turn |
 | `intent`        | Label | `offer`, `haggle`, `chat`, or `threat`       |
-| `rude`          | Label | `true` or `false`                            |
+| `rude`          | Label | `none`, `mild`, or `severe`                  |
 | `player_offer`  | Label | Offer for intent `offer`, else empty         |
 
 `relationship_status` is the relationship when the negotiation started, and `output` is the response call's reply.
@@ -135,7 +137,8 @@ A deal does not complete a purchase: `sell` only makes the item available at the
 | Turn                                    | Outcome  | Expected reply            |
 |-----------------------------------------|----------|---------------------------|
 | `threat`                                | Walkaway | `refuse`, friendship −3   |
-| `rude`, Hostile or Neutral              | Walkaway | `refuse`                  |
+| `rude` severe, Hostile or Neutral       | Walkaway | `refuse`                  |
+| `rude` mild, Hostile                    | Walkaway | `refuse`                  |
 | `chat`                                  | Chat     | `talk`                    |
 | `haggle`, patience ≤ cost               | Walkaway | `refuse`                  |
 | `haggle`                                | Counter  | `negotiate` at counter    |
@@ -144,7 +147,7 @@ A deal does not complete a purchase: `sell` only makes the item available at the
 | `offer`, patience ≤ cost                | Walkaway | `refuse`                  |
 | `offer`                                 | Counter  | `negotiate` at next counter |
 
-A haggle costs no patience in round 1 and one patience after it. Rude Friendly and Allied turns follow their intent. The next counter equals the counter unless an offer turn concedes. A deal costs no patience, except one patience when the last offer already met the counter. Next patience is patience minus cost, or 0 on a walkaway.
+A haggle costs no patience in round 1 and one patience after it. Rude turns that do not end the negotiation follow their intent: a Hostile merchant walks away at any rudeness, a Neutral one only at severe rudeness (insults, demands for something free), and Friendly and Allied ones never. Mild rudeness is disparaging the goods or the price, a sharp tone, or impatience. The next counter equals the counter unless an offer turn concedes. A deal costs no patience, except one patience when the last offer already met the counter. Next patience is patience minus cost, or 0 on a walkaway.
 
 ## Friendship Settlement
 
@@ -174,8 +177,9 @@ Each run proves floor ≤ counter ≤ opening and a deal at or above the counter
 | `Bargaining row is missing '{column}'`                   | A required column is empty           |
 | `Invalid intent '{intent}'`                              | Intent outside the four values       |
 | `'{column}' must be a positive integer`                  | A number column is malformed         |
-| `'rude' must be true or false`                           | Rude is malformed                    |
+| `'rude' must be none, mild, or severe`                   | Rude is malformed                    |
 | `'player_offer' must be set only for intent 'offer'`     | Offer and intent disagree            |
+| `'previous_input' and 'previous_reply' must be set together` | Only half of the previous turn is filled |
 | `Patience {p} is outside 1 to {limit}`                   | Patience out of range                |
 | `Counter price {c} is outside floor {f} to opening {o}`  | Counter out of range                 |
 | `Counter price must be the opening {o} before any offer` | Conceded without an offer            |
