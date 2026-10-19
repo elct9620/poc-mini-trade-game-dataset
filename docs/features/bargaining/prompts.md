@@ -77,4 +77,7 @@ Both prompts summarise the negotiation so far in one sentence. The sentence depe
 | State before the turn  | Sentence                                                       |
 |------------------------|----------------------------------------------------------------|
 | `last_offer` empty     | `You quoted {counter_price}.`                                  |
-| `last_offer` filled    | `Player last offered {last_offer}. You countered at {counter_price}.` |
+| `last_offer` below `counter_price` | `Player last offered {last_offer}. You countered at {counter_price}.` |
+| `last_offer` at or above `counter_price` | `You agreed to sell at {deal_price}; the player has not bought it yet.` |
+
+A last offer meets the counter only after a deal the player declined. `{deal_price}` is `counter_price` for Friendly and Allied merchants and `last_offer` otherwise, the price that deal offered.

@@ -60,6 +60,28 @@ RSpec.describe Negotiation do
       end
     end
 
+    context 'when the player accepts again after declining a deal' do
+      let(:row) { turn_row(epic_neutral, 'best_offer' => '60', 'last_offer' => '60', 'player_offer' => '60') }
+
+      it 'is expected to offer the deal again for one patience' do
+        expect(result).to include(outcome: :deal, action: 'sell', price: 60, patience: 2)
+      end
+    end
+
+    context 'when accepting again after declining a deal costs the last patience' do
+      let(:row) do
+        turn_row(epic_neutral, 'patience' => '1', 'best_offer' => '60', 'last_offer' => '60', 'player_offer' => '60')
+      end
+
+      it { is_expected.to include(outcome: :walkaway, action: 'refuse') }
+    end
+
+    context 'when the first deal costs no patience' do
+      let(:row) { turn_row(epic_neutral, 'patience' => '1', 'player_offer' => '60') }
+
+      it { is_expected.to include(outcome: :deal, patience: 1) }
+    end
+
     context 'when a friend is offered more than the counter' do
       let(:row) do
         turn_row({ 'item_rarity' => 'Common', 'item_expected_price' => '10', 'relationship_status' => 'Friendly' },

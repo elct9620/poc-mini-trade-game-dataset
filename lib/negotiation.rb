@@ -57,6 +57,7 @@ module Negotiation
       patience: row['patience'].to_i,
       counter: row['counter_price'].to_i,
       best_offer: row['best_offer'].to_s.empty? ? nil : row['best_offer'].to_i,
+      last_offer: row['last_offer'].to_s.empty? ? nil : row['last_offer'].to_i,
       intent: row['intent'],
       rude: row['rude'] == 'true',
       offer: row['player_offer'].to_i
@@ -91,10 +92,7 @@ module Negotiation
     step = progress ? concession(raise_amount, prices, params) : 0
     next_counter = offer >= counter ? counter : [floor, counter - step].max
 
-    if offer >= next_counter
-      price = FRIENDS.include?(state[:relationship]) ? next_counter : offer
-      return { outcome: :deal, price: price, counter: next_counter, patience: state[:patience] }
-    end
+    return deal(state, offer, next_counter) if offer >= next_counter
 
     cost = if 2 * offer < floor then 2
            elsif progress then 0
@@ -103,6 +101,20 @@ module Negotiation
     return walkaway(state) if state[:patience] <= cost
 
     { outcome: :counter, price: next_counter, counter: next_counter, patience: state[:patience] - cost }
+  end
+
+  # A deal only offers the purchase; accepting again after declining one stalls like a haggle.
+  def deal(state, offer, next_counter)
+    cost = declined?(state) ? 1 : 0
+    return walkaway(state) if state[:patience] <= cost
+
+    price = FRIENDS.include?(state[:relationship]) ? next_counter : offer
+    { outcome: :deal, price: price, counter: next_counter, patience: state[:patience] - cost }
+  end
+
+  # The last offer meets the counter only when the merchant agreed to it and the player did not buy.
+  def declined?(state)
+    !state[:last_offer].nil? && state[:last_offer] >= state[:counter]
   end
 
   # Raises count from the best offer so far, floored at half the floor, so a lowball
@@ -125,5 +137,5 @@ module Negotiation
     { outcome: :walkaway, price: nil, counter: state[:counter], patience: 0 }
   end
 
-  private_class_method :parse, :outcome_of, :haggle, :offer, :offer_raise, :concession, :walkaway
+  private_class_method :parse, :outcome_of, :haggle, :offer, :deal, :declined?, :offer_raise, :concession, :walkaway
 end

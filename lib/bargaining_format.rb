@@ -93,9 +93,13 @@ module BargainingFormat
 
   # Returns the one-sentence summary of the negotiation before the turn.
   def last_exchange(row)
-    return "You quoted #{row['counter_price']}." if row['last_offer'].to_s.strip.empty?
+    last_offer = row['last_offer'].to_s.strip
+    counter = row['counter_price'].to_i
+    return "You quoted #{counter}." if last_offer.empty?
+    return "Player last offered #{last_offer}. You countered at #{counter}." if last_offer.to_i < counter
 
-    "Player last offered #{row['last_offer']}. You countered at #{row['counter_price']}."
+    deal_price = Negotiation::FRIENDS.include?(row['relationship_status']) ? counter : last_offer.to_i
+    "You agreed to sell at #{deal_price}; the player has not bought it yet."
   end
 
   def response_prompt(row)

@@ -42,7 +42,8 @@ Every rule below uses these names for the negotiation over one item.
 
 | Term        | Meaning                                                   |
 |-------------|-----------------------------------------------------------|
-| Negotiation | All turns over one item, from first message to its end    |
+| Negotiation | All turns over one item, until the player buys or the merchant walks away |
+| Deal        | The merchant agrees to sell at the deal price; the game offers the player a purchase |
 | Turn        | One player message and the merchant's reply               |
 | Floor       | Lowest price the merchant accepts                         |
 | Opening     | The merchant's first counter price                        |
@@ -129,6 +130,8 @@ cost          = offer < floor / 2 ? 2 : (progress ? 0 : 1)
 
 Rows are checked against the first matching rule. A deal sells at the offer for Hostile and Neutral merchants and at the next counter for Friendly and Allied ones.
 
+A deal does not complete a purchase: `sell` only makes the item available at the deal price, so a line misread as accepting costs the player nothing. Buying ends the negotiation; any other turn declines the purchase and bargaining goes on. A row's last offer meets its counter price only after a declined deal, and accepting again then stalls like a haggle.
+
 | Turn                                    | Outcome  | Expected reply            |
 |-----------------------------------------|----------|---------------------------|
 | `threat`                                | Walkaway | `refuse`, friendship −3   |
@@ -136,11 +139,12 @@ Rows are checked against the first matching rule. A deal sells at the offer for 
 | `chat`                                  | Chat     | `talk`                    |
 | `haggle`, patience ≤ cost               | Walkaway | `refuse`                  |
 | `haggle`                                | Counter  | `negotiate` at counter    |
+| `offer`, offer ≥ next counter, last offer ≥ counter, patience ≤ 1 | Walkaway | `refuse` |
 | `offer`, offer ≥ next counter           | Deal     | `sell` at deal price      |
 | `offer`, patience ≤ cost                | Walkaway | `refuse`                  |
 | `offer`                                 | Counter  | `negotiate` at next counter |
 
-A haggle costs no patience in round 1 and one patience after it. Rude Friendly and Allied turns follow their intent. The next counter equals the counter unless an offer turn concedes. Next patience is patience minus cost, or 0 on a walkaway.
+A haggle costs no patience in round 1 and one patience after it. Rude Friendly and Allied turns follow their intent. The next counter equals the counter unless an offer turn concedes. A deal costs no patience, except one patience when the last offer already met the counter. Next patience is patience minus cost, or 0 on a walkaway.
 
 ## Friendship Settlement
 
@@ -159,7 +163,7 @@ The model still scores each reply's `friendship_change` by behaviour, as in sing
 2. In `docs/features/bargaining/`, run `java -cp tla2tools.jar tlc2.TLC -config Neutral.cfg Bargain`.
 3. Repeat with `Hostile.cfg`, `Allied.cfg`, and `EpicNeutral.cfg`.
 
-Each run proves floor ≤ counter ≤ opening and a deal at or above the counter. It also proves the counter never rises, rounds stay bounded, and every negotiation ends.
+Each run proves floor ≤ counter ≤ opening and a deal at or above the counter. It also proves the counter never rises, rounds stay bounded, and every negotiation ends, even when the player keeps declining deals.
 
 ## Validation
 

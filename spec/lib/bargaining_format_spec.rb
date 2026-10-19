@@ -24,6 +24,21 @@ RSpec.describe BargainingFormat do
     context 'when the player has not offered yet' do
       it { expect(described_class.last_exchange(row.merge('last_offer' => ''))).to eq('You quoted 58.') }
     end
+
+    context 'when the player declined a deal at their offer' do
+      it do
+        expect(described_class.last_exchange(row.merge('best_offer' => '60', 'last_offer' => '60')))
+          .to eq('You agreed to sell at 60; the player has not bought it yet.')
+      end
+    end
+
+    context 'when the player declined a friend\'s deal at the counter' do
+      it do
+        expect(described_class.last_exchange(row.merge('relationship_status' => 'Friendly', 'best_offer' => '60',
+                                                       'last_offer' => '60')))
+          .to eq('You agreed to sell at 58; the player has not bought it yet.')
+      end
+    end
   end
 
   describe '.extraction_conversation' do
