@@ -81,7 +81,8 @@ The dataset consists of CSV files with the following structure:
 - `input` (string): Player's message or prompt (in Traditional Chinese)
 - `output` (string): NPC's JSON response containing action, message, and parameters
 - `round`, `patience`, `counter_price`, `best_offer`, `last_offer` (integer): Bargaining state before the turn; empty on single-turn rows
-- `intent` (string), `rude` (boolean), `player_offer` (integer): Labels for reading the player's bargaining message; empty on single-turn rows
+- `intent` (string), `rude` (`none`, `mild`, or `severe`), `player_offer` (integer): Labels for reading the player's bargaining message; empty on single-turn rows. Mild rudeness (disparaging the goods or price) ends a negotiation only with a Hostile merchant; severe rudeness (insults, accusing the merchant of cheating, demanding it for free) also with a Neutral one
+- `previous_input`, `previous_reply` (string): The previous turn's player line and merchant message in the same negotiation; empty on the first turn and on single-turn rows
 
 A bargaining row is one turn of a multi-turn haggle. The game keeps the negotiation state and computes every price, so the model reads the player's intent and offer in one call and replies in another; see [bargaining](docs/features/bargaining.md) for the rules and prompts.
 
@@ -104,9 +105,9 @@ All NPC responses follow this JSON structure:
 
 | Split      | Examples | Single-turn | Bargaining | Use                               |
 |------------|----------|-------------|------------|-----------------------------------|
-| train      | 2859     | 1650        | 1209       | Fine-tuning                       |
-| validation | 428      | 205         | 223        | Checkpoint selection              |
-| test       | 362      | 205         | 157        | Final scoring with `bin/evaluate` |
+| train      | 3046     | 1650        | 1396       | Fine-tuning                       |
+| validation | 473      | 205         | 268        | Checkpoint selection              |
+| test       | 403      | 205         | 198        | Final scoring with `bin/evaluate` |
 
 The single-turn rows are an 80/10/10 division of all labelled rows, stratified by action, relationship status, and rarity so each split keeps the same mix. Bargaining turns follow the same ratio, except that validation holds extra turns so checkpoint selection sees at least 30 deals. Items never repeat across splits, and no player line in validation or test is worded like one in train (checked with `bin/diversity --against`), so validation and test measure generalization to unseen items and phrasings. Select checkpoints by `bin/evaluate` scores on validation rather than eval loss: most of the loss comes from free-form dialogue wording, so it bottoms out earlier than decision accuracy peaks.
 
