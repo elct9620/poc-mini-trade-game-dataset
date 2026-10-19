@@ -80,6 +80,10 @@ The dataset consists of CSV files with the following structure:
 - `relationship_status` (string): Current relationship with player - one of: `Hostile`, `Neutral`, `Friendly`, or `Allied`
 - `input` (string): Player's message or prompt (in Traditional Chinese)
 - `output` (string): NPC's JSON response containing action, message, and parameters
+- `round`, `patience`, `counter_price`, `best_offer`, `last_offer` (integer): Bargaining state before the turn; empty on single-turn rows
+- `intent` (string), `rude` (boolean), `player_offer` (integer): Labels for reading the player's bargaining message; empty on single-turn rows
+
+A bargaining row is one turn of a multi-turn haggle. The game keeps the negotiation state and computes every price, so the model reads the player's intent and offer in one call and replies in another; see [bargaining](docs/features/bargaining.md) for the rules and prompts.
 
 ### Output Format
 
@@ -98,13 +102,13 @@ All NPC responses follow this JSON structure:
 
 ### Data Splits
 
-| Split      | Examples | Use                                   |
-|------------|----------|---------------------------------------|
-| train      | 1650     | Fine-tuning                           |
-| validation | 205      | Checkpoint selection                  |
-| test       | 205      | Final scoring with `bin/evaluate`     |
+| Split      | Examples | Single-turn | Bargaining | Use                               |
+|------------|----------|-------------|------------|-----------------------------------|
+| train      | 2859     | 1650        | 1209       | Fine-tuning                       |
+| validation | 361      | 205         | 156        | Checkpoint selection              |
+| test       | 362      | 205         | 157        | Final scoring with `bin/evaluate` |
 
-The splits are an 80/10/10 division of all labelled rows, stratified by action, relationship status, and rarity so each split keeps the same mix. Items never repeat across splits, so validation and test measure generalization to unseen items. Select checkpoints by `bin/evaluate` scores on validation rather than eval loss: most of the loss comes from free-form dialogue wording, so it bottoms out earlier than decision accuracy peaks.
+The single-turn rows are an 80/10/10 division of all labelled rows, stratified by action, relationship status, and rarity so each split keeps the same mix; bargaining turns follow the same ratio. Items never repeat across splits, and no player line in validation or test is worded like one in train (checked with `bin/diversity --against`), so validation and test measure generalization to unseen items and phrasings. Select checkpoints by `bin/evaluate` scores on validation rather than eval loss: most of the loss comes from free-form dialogue wording, so it bottoms out earlier than decision accuracy peaks.
 
 ## Game Mechanics
 
@@ -182,6 +186,8 @@ Data synthesis is **GitHub issue-driven** using Claude Code:
 New rows are appended with incrementing IDs. JSON outputs in CSV are properly escaped (double quotes as `""`).
 
 Bulk additions follow the same pricing policy as the original rows: each scenario's action, price, and friendship change are fixed first, and the Chinese dialogue is written to match. Dialogue wording is checked for Taiwan usage with `zhtw-mcp lint`.
+
+Bargaining turns come from simulated negotiations: the game rules in `lib/negotiation.rb` decide every state, label, action, and price, and Claude Sonnet writes only the player line and the merchant reply. Each generated batch must pass [`bin/diversity`](docs/tools/diversity.md), which rejects repeated wording and wording that gives away whether an offer closes a deal.
 
 #### Source Data Producers
 
