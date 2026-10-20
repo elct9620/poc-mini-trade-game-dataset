@@ -4,6 +4,8 @@ require 'json'
 require_relative '../bargaining_format'
 require_relative '../chat_format'
 require_relative '../validation_error'
+require_relative 'response_schema'
+require_relative 'simplified_characters'
 
 ##
 # = Evaluation
@@ -35,7 +37,8 @@ class Evaluation
     @dataset.map { |row| BargainingFormat.bargaining?(row) ? evaluate_bargaining(row) : evaluate_single(row) }
   end
 
-  RESPONSE_METRICS = %w[json_valid rule_pass action_match friendship_match].freeze
+  RESPONSE_METRICS = %w[json_valid rule_pass action_match friendship_match message_clean message_traditional].freeze
+  MESSAGE_PATTERN = /\A[#{MESSAGE_CHARACTERS}]+\z/
   EXTRACTION_METRICS = %w[intent_match rude_match offer_match].freeze
 
   # Summarizes results into rates between 0 and 1, overall and per row type.
@@ -103,7 +106,9 @@ class Evaluation
       'json_valid' => !actual.nil?, 'rule_pass' => errors.empty?,
       'expected_action' => expected_action, 'actual_action' => actual_action,
       'action_match' => actual_action == expected_action,
-      'friendship_match' => !actual.nil? && actual.dig('parameters', 'friendship_change') == expected.dig('parameters', 'friendship_change')
+      'friendship_match' => !actual.nil? && actual.dig('parameters', 'friendship_change') == expected.dig('parameters', 'friendship_change'),
+      'message_clean' => actual&.dig('message').is_a?(String) && MESSAGE_PATTERN.match?(actual['message']),
+      'message_traditional' => actual&.dig('message').is_a?(String) && actual['message'].each_char.none? { |char| SIMPLIFIED_CHARACTERS.key?(char) }
     }
   end
 

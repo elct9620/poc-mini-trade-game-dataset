@@ -11,6 +11,11 @@
 class Evaluation
   FRIENDSHIP_SCHEMA = { 'type' => 'integer', 'minimum' => -3, 'maximum' => 3 }.freeze
 
+  # Characters a message may use: CJK ideographs, digits, and full-width punctuation, the set the dataset writes.
+  # Guided decoding then cannot emit the foreign-script or Latin fragments a small model drifts into.
+  MESSAGE_CHARACTERS = "\u4E00-\u9FFF0-9，。、！？：；「」『』（）…—～"
+  MESSAGE_SCHEMA = { 'type' => 'string', 'pattern' => "^[#{MESSAGE_CHARACTERS}]+$" }.freeze
+
   # JSON schema of the NPC reply, for inference engines that support guided decoding.
   # Every field is required per action so a grammar cannot end the object before the price.
   RESPONSE_SCHEMA = {
@@ -19,7 +24,7 @@ class Evaluation
         'type' => 'object',
         'properties' => {
           'action' => { 'type' => 'string', 'enum' => %w[sell negotiate refuse] },
-          'message' => { 'type' => 'string' },
+          'message' => MESSAGE_SCHEMA,
           'parameters' => {
             'type' => 'object',
             'properties' => { 'price' => { 'type' => 'integer', 'minimum' => 0 }, 'friendship_change' => FRIENDSHIP_SCHEMA },
@@ -32,7 +37,7 @@ class Evaluation
         'type' => 'object',
         'properties' => {
           'action' => { 'const' => 'talk' },
-          'message' => { 'type' => 'string' },
+          'message' => MESSAGE_SCHEMA,
           'parameters' => {
             'type' => 'object',
             'properties' => { 'friendship_change' => FRIENDSHIP_SCHEMA },

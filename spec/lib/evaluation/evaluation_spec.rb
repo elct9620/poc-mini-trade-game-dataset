@@ -66,6 +66,39 @@ RSpec.describe Evaluation do
 
       it { expect(result['action_match']).to be(false) }
     end
+
+    context 'when the message mixes in foreign-script fragments' do
+      let(:reply) { '{"action":"sell","message":"成交，水밑上很涼","parameters":{"price":120,"friendship_change":1}}' }
+
+      it { expect(result['message_clean']).to be(false) }
+      it { expect(result['rule_pass']).to be(true) }
+    end
+
+    context 'when the message uses only the dataset characters' do
+      let(:reply) { '{"action":"sell","message":"成交，120金幣。","parameters":{"price":120,"friendship_change":1}}' }
+
+      it { expect(result['message_clean']).to be(true) }
+    end
+
+    context 'when the reply is not JSON for the message check' do
+      let(:reply) { '好的，成交' }
+
+      it { expect(result['message_clean']).to be(false) }
+      it { expect(result['message_traditional']).to be(false) }
+    end
+
+    context 'when the message writes a simplified character' do
+      let(:reply) { '{"action":"sell","message":"成交，买不买随你。","parameters":{"price":120,"friendship_change":1}}' }
+
+      it { expect(result['message_traditional']).to be(false) }
+      it { expect(result['message_clean']).to be(true) }
+    end
+
+    context 'when the message is written in traditional characters' do
+      let(:reply) { '{"action":"sell","message":"成交，買不買隨你。","parameters":{"price":120,"friendship_change":1}}' }
+
+      it { expect(result['message_traditional']).to be(true) }
+    end
   end
 
   describe '#execute with a bargaining row' do
@@ -121,11 +154,11 @@ RSpec.describe Evaluation do
 
     let(:single_result) do
       { 'bargaining' => false, 'json_valid' => true, 'rule_pass' => true, 'action_match' => true,
-        'friendship_match' => true, 'latency' => 0.2 }
+        'friendship_match' => true, 'message_clean' => true, 'latency' => 0.2 }
     end
     let(:bargaining_result) do
       { 'bargaining' => true, 'json_valid' => true, 'rule_pass' => false, 'action_match' => false,
-        'friendship_match' => true, 'intent_match' => true, 'rude_match' => true, 'offer_match' => false,
+        'friendship_match' => true, 'message_clean' => false, 'intent_match' => true, 'rude_match' => true, 'offer_match' => false,
         'deal' => true, 'deal_match' => false, 'latency' => 0.6 }
     end
 
@@ -138,7 +171,8 @@ RSpec.describe Evaluation do
       end
 
       it { is_expected.to include('intent_match' => 1.0, 'rude_match' => 1.0, 'offer_match' => 0.0, 'deal_match' => 0.0) }
-      it { expect(summary['single']).to include('total' => 1, 'action_match' => 1.0) }
+      it { expect(summary['single']).to include('total' => 1, 'action_match' => 1.0, 'message_clean' => 1.0) }
+      it { is_expected.to include('message_clean' => 0.5) }
       it { expect(summary['bargaining']).to include('total' => 1, 'action_match' => 0.0) }
     end
 
