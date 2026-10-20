@@ -52,6 +52,9 @@ module Validator
       unless blank?(row['player_offer']) == (row['intent'] != 'offer')
         raise ValidationError, "'player_offer' must be set only for intent 'offer'"
       end
+      if row['intent'] == 'offer' && !Negotiation.offer_stated?(row['input'], row['player_offer'])
+        raise ValidationError, "'player_offer' #{row['player_offer']} is not a number in the player's message"
+      end
       return if blank?(row['previous_input']) == blank?(row['previous_reply'])
 
       raise ValidationError, "'previous_input' and 'previous_reply' must be set together"

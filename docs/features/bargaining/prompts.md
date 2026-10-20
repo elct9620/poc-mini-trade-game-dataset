@@ -24,7 +24,7 @@ You must respond with a JSON object with the following format:
 {
   "intent": "offer" | "haggle" | "chat" | "threat",
   "rude": "none" | "mild" | "severe" (mild: disparaging the goods or price, sharp or impatient tone; severe: insults, cursing, or demanding it for free),
-  "player_offer": number (the price the player offers, the counter price when the player accepts it, or null unless intent is "offer")
+  "player_offer": number (the price written in the player's message, or null unless intent is "offer")
 }
 ```
 
@@ -36,7 +36,7 @@ The reply carries the row's stage-1 labels. Each field takes its value from the 
 |----------------|----------------|--------------------------------------------|
 | `intent`       | `intent`       | `offer`, `haggle`, `chat`, or `threat`     |
 | `rude`         | `rude`         | `none`, `mild`, or `severe`                |
-| `player_offer` | `player_offer` | Positive integer for `offer`, else `null`  |
+| `player_offer` | `player_offer` | Price written in the message for `offer`, else `null` |
 
 ## Response Prompt
 

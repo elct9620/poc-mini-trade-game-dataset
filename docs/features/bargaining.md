@@ -70,6 +70,19 @@ player message
 [response call] --> action, message, price, friendship_change
 ```
 
+## Offer Check
+
+The game, not the model, decides whether a line accepts a price. Before the game step it keeps an extracted offer only when the player wrote that price; otherwise it reads the turn as a `haggle` without an offer. A line such as 好吧 or 免費給我 therefore never reaches a deal, and the player accepts the counter by buying.
+
+| Rule | Behaviour |
+|------|-----------|
+| Written price | Arabic digits, half or full width, or Chinese numerals such as 十八 or 一百二十 |
+| Lone numeral | Counts only before a coin unit (金, 塊, 元, 枚, 銀, 銅), a final particle, or the end of a clause, so 一點 or 一個 is not 1 |
+| Offer not written | The turn becomes `haggle` with no offer |
+| Buying | The player can buy at the current counter at any time; buying ends the negotiation |
+
+`Negotiation.offer_stated?` implements the check, and the game must apply the same rules.
+
 ## Row Columns
 
 A bargaining row is a dataset row with `round` filled; single-turn rows leave every column below empty. State columns hold the negotiation before the turn, and label columns hold the extraction reply.
@@ -85,7 +98,7 @@ A bargaining row is a dataset row with `round` filled; single-turn rows leave ev
 | `previous_reply` | State | Merchant message of the previous turn, empty on the first turn |
 | `intent`        | Label | `offer`, `haggle`, `chat`, or `threat`       |
 | `rude`          | Label | `none`, `mild`, or `severe`                  |
-| `player_offer`  | Label | Offer for intent `offer`, else empty         |
+| `player_offer`  | Label | Price written in the input for intent `offer`, else empty |
 
 `relationship_status` is the relationship when the negotiation started, and `output` is the response call's reply.
 
@@ -179,6 +192,7 @@ Each run proves floor ≤ counter ≤ opening and a deal at or above the counter
 | `'{column}' must be a positive integer`                  | A number column is malformed         |
 | `'rude' must be none, mild, or severe`                   | Rude is malformed                    |
 | `'player_offer' must be set only for intent 'offer'`     | Offer and intent disagree            |
+| `'player_offer' {o} is not a number in the player's message` | The offer fails the offer check |
 | `'previous_input' and 'previous_reply' must be set together` | Only half of the previous turn is filled |
 | `Patience {p} is outside 1 to {limit}`                   | Patience out of range                |
 | `Counter price {c} is outside floor {f} to opening {o}`  | Counter out of range                 |

@@ -26,7 +26,7 @@ module BargainingFormat
     {
       "intent": "offer" | "haggle" | "chat" | "threat",
       "rude": "none" | "mild" | "severe" (mild: disparaging the goods or price, sharp or impatient tone; severe: insults, cursing, or demanding it for free),
-      "player_offer": number (the price the player offers, the counter price when the player accepts it, or null unless intent is "offer")
+      "player_offer": number (the price written in the player's message, or null unless intent is "offer")
     }
   PROMPT
 

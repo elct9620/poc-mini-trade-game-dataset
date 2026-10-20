@@ -13,7 +13,7 @@ RSpec.describe Validator::BargainingValidator do
       {
         'item_rarity' => 'Common', 'item_expected_price' => '10', 'relationship_status' => 'Neutral',
         'round' => '2', 'patience' => '3', 'counter_price' => '13', 'best_offer' => '8', 'last_offer' => '8',
-        'intent' => 'offer', 'rude' => 'none', 'player_offer' => '9',
+        'input' => '九金幣吧', 'intent' => 'offer', 'rude' => 'none', 'player_offer' => '9',
         'output' => reply('negotiate', 12)
       }
     end
@@ -92,6 +92,20 @@ RSpec.describe Validator::BargainingValidator do
       it 'is expected to raise ValidationError' do
         expect { validation_result }.to raise_error(ValidationError, "'player_offer' must be set only for intent 'offer'")
       end
+    end
+
+    context 'when the player offer is not written in the message' do
+      let(:row) { with('input' => '好啦，直接賣我吧') }
+
+      it 'is expected to raise ValidationError' do
+        expect { validation_result }.to raise_error(ValidationError, "'player_offer' 9 is not a number in the player's message")
+      end
+    end
+
+    context 'when the player offer is written in Arabic digits' do
+      let(:row) { with('input' => '9 金幣可以嗎') }
+
+      it { is_expected.to be true }
     end
 
     context 'when only the previous player line is filled' do

@@ -43,6 +43,62 @@ RSpec.describe Negotiation do
     end
   end
 
+  describe '.stated_numbers' do
+    subject { described_class.stated_numbers(text) }
+
+    context 'when the message mixes full-width digits and Chinese numerals' do
+      let(:text) { '１８不行的話，二十金幣' }
+
+      it { is_expected.to contain_exactly(18, 20) }
+    end
+
+    context 'when the message writes hundreds and ten thousands in Chinese' do
+      let(:text) { '一萬兩千零五或三百' }
+
+      it { is_expected.to contain_exactly(12_005, 300) }
+    end
+
+    context 'when the message has no number' do
+      let(:text) { '好吧' }
+
+      it { is_expected.to be_empty }
+    end
+
+    context 'when a numeral only forms a word' do
+      let(:text) { '你是一個爛人，便宜一點，萬一呢' }
+
+      it { is_expected.to be_empty }
+    end
+
+    context 'when a lone numeral comes before a coin unit or ends the clause' do
+      let(:text) { '一塊錢賣我，或者五？' }
+
+      it { is_expected.to contain_exactly(1, 5) }
+    end
+  end
+
+  describe '.offer_stated?' do
+    subject { described_class.offer_stated?(text, 14) }
+
+    context 'when the player writes the offer' do
+      let(:text) { '十四金幣' }
+
+      it { is_expected.to be true }
+    end
+
+    context 'when the player names a different number' do
+      let(:text) { '0 金幣' }
+
+      it { is_expected.to be false }
+    end
+
+    context 'when the player writes no number' do
+      let(:text) { '免費給我' }
+
+      it { is_expected.to be false }
+    end
+  end
+
   describe '.patience_limit' do
     subject { described_class.patience_limit('Friendly') }
 

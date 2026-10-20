@@ -28,8 +28,47 @@ module Negotiation
   RUDE_TOLERANCE = { 'Hostile' => 'none', 'Neutral' => 'mild', 'Friendly' => 'severe', 'Allied' => 'severe' }.freeze
   RUDE_LEVELS = %w[none mild severe].freeze
   REPLY_ACTIONS = { deal: 'sell', counter: 'negotiate', walkaway: 'refuse', chat: 'talk' }.freeze
+  CHINESE_DIGITS = { '零' => 0, '〇' => 0, '一' => 1, '二' => 2, '兩' => 2, '三' => 3, '四' => 4,
+                     '五' => 5, '六' => 6, '七' => 7, '八' => 8, '九' => 9 }.freeze
+  CHINESE_UNITS = { '十' => 10, '百' => 100, '千' => 1000 }.freeze
 
   module_function
+
+  # A lone Chinese numeral is a price only before a coin unit, a final particle, or the end of a clause,
+  # so words such as 一點, 一個 or 一定 are not read as 1.
+  CHINESE_PRICE = /(?<![零〇一二兩三四五六七八九十百千萬])
+                   (?:[零〇一二兩三四五六七八九十百千][零〇一二兩三四五六七八九十百千萬]+
+                     |[零〇一二兩三四五六七八九十百千](?=[金塊元枚銀銅吧呢啊嗎啦喔哦嘛]|[\s\p{P}]|\z))/x
+
+  # Returns every price written in a player's message, in Arabic digits (half or full width) or Chinese numerals.
+  def stated_numbers(text)
+    normalized = text.to_s.tr('０-９', '0-9')
+    normalized.scan(/\d+/).map(&:to_i) + normalized.scan(CHINESE_PRICE).map { |run| chinese_number(run) }
+  end
+
+  # An offer counts only when the player wrote that price; the game reads any other extracted offer as a haggle.
+  def offer_stated?(text, offer)
+    stated_numbers(text).include?(offer.to_i)
+  end
+
+  def chinese_number(run)
+    total = 0
+    section = 0
+    digit = nil
+    run.each_char do |char|
+      if CHINESE_DIGITS.key?(char)
+        digit = CHINESE_DIGITS[char]
+      elsif char == '萬'
+        total += (section + digit.to_i) * 10_000
+        section = 0
+        digit = nil
+      else
+        section += (digit || 1) * CHINESE_UNITS[char]
+        digit = nil
+      end
+    end
+    total + section + digit.to_i
+  end
 
   # Returns the patience a negotiation starts with for a relationship.
   def patience_limit(relationship)
@@ -145,5 +184,5 @@ module Negotiation
     { outcome: :walkaway, price: nil, counter: state[:counter], patience: 0 }
   end
 
-  private_class_method :parse, :outcome_of, :too_rude?, :haggle, :offer, :deal, :declined?, :offer_raise, :concession, :walkaway
+  private_class_method :chinese_number, :parse, :outcome_of, :too_rude?, :haggle, :offer, :deal, :declined?, :offer_raise, :concession, :walkaway
 end
