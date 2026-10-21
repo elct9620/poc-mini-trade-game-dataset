@@ -102,6 +102,15 @@ A bargaining row is a dataset row with `round` filled; single-turn rows leave ev
 
 `relationship_status` is the relationship when the negotiation started, and `output` is the response call's reply.
 
+The intent is what the line does to the negotiation, not how long it is, so a reply of 好 to a counter is chat and the player accepts by buying.
+
+| Intent   | Player line                                                        |
+|----------|--------------------------------------------------------------------|
+| `offer`  | Names a price for the item                                         |
+| `haggle` | Asks for the price, a lower price, or to buy, without naming one   |
+| `chat`   | Anything else: questions, greetings, thanks, praise, or replies such as 好 and 好，謝謝 |
+| `threat` | Threatens the merchant or tries to take the item                   |
+
 ## Locked Prices
 
 Prices are fixed when a negotiation starts, so friendship changes inside it never move them. The floor is the single-turn asking price, which keeps every [validation](validation.md) minimum.
@@ -164,12 +173,25 @@ A haggle costs no patience in round 1 and one patience after it. Rude turns that
 
 ## Friendship Settlement
 
-The model still scores each reply's `friendship_change` by behaviour, as in single-turn rows. The game sums a negotiation's changes and applies the total when it ends.
+The model scores each reply's `friendship_change` from the player's behaviour plus, for an offer, its price. An offer is judged against the merchant's price rather than the expected price, so accepting a friend's own price, often below the expected price, never counts as a low offer.
 
-| Step       | Rule                                         |
-|------------|----------------------------------------------|
-| Each turn  | Reply's `friendship_change`, −3 to +3        |
-| Settlement | Sum of the turns, capped at −3 to +3         |
+| Part      | Change                                                            |
+|-----------|-------------------------------------------------------------------|
+| Behaviour | Rude (`mild` or `severe`) −1; polite, such as a greeting, thanks, or praise, +1; otherwise 0 |
+| Offer     | At or above the counter +1; below half the floor −1; otherwise 0  |
+| Threat    | −3, replacing both parts                                          |
+
+`Negotiation.offer_friendship` computes the offer part. The game sums a negotiation's changes and applies the total when it ends.
+
+| Step       | Rule                                                         |
+|------------|--------------------------------------------------------------|
+| Each turn  | Reply's `friendship_change`                                  |
+| Chat turns | Their positive changes count at most +1 in total             |
+| Buying     | +1, a fair deal at the merchant's price                      |
+| Walkaway   | Only negative changes count                                  |
+| Settlement | Sum of the counted changes, capped at −3 to +3               |
+
+Chat costs no patience, so without its cap repeating 謝謝 would raise friendship for free; without the walkaway rule, polite pleas that exhaust patience would too. A player can still raise friendship quickly by buying cheap items politely; the game should limit that, for example with a daily cap.
 
 ## Formal Model
 
@@ -200,6 +222,7 @@ Each run proves floor ≤ counter ≤ opening and a deal at or above the counter
 | `Offers must have best offer {b} at least last offer {l}` | Offer columns disagree              |
 | `Expected {reply} from the negotiation state, got {reply}` | Reply differs from the outcome     |
 | `Threat must change friendship by -3`                    | Threat reply keeps friendship        |
+| `Friendship {change} must be {allowed} for rude {rude}…` | Friendship is not behaviour plus offer part |
 
 ## Conversion
 

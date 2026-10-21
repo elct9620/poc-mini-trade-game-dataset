@@ -84,6 +84,17 @@ module Negotiation
     { floor: floor, opening: opening }
   end
 
+  # Returns the friendship change an offer earns by its price against the merchant's: +1 for meeting the
+  # counter, -1 for a lowball under half the floor, else 0. Judging by the merchant's price keeps a friend's
+  # own price, often below the expected price, from counting as a low offer.
+  def offer_friendship(row)
+    offer = row['player_offer'].to_i
+    return 1 if offer >= row['counter_price'].to_i
+    return -1 if 2 * offer < prices(row)[:floor]
+
+    0
+  end
+
   # Returns the outcome of a bargaining row's turn: the outcome, the expected reply action and price,
   # and the counter and patience after the turn.
   def turn(row)

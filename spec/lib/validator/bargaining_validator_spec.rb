@@ -200,6 +200,50 @@ RSpec.describe Validator::BargainingValidator do
       it { is_expected.to be true }
     end
 
+    context 'when a polite offer below the counter gains friendship' do
+      let(:row) { with('output' => reply('negotiate', 12, 1)) }
+
+      it { is_expected.to be true }
+    end
+
+    context 'when an offer below the counter gains more than politeness' do
+      let(:row) { with('output' => reply('negotiate', 12, 2)) }
+
+      it 'is expected to raise ValidationError' do
+        expect { validation_result }.to raise_error(ValidationError, 'Friendship 2 must be 0 or 1 for rude none and an offer worth +0')
+      end
+    end
+
+    context 'when an offer meeting the counter loses friendship' do
+      let(:row) { with('input' => '13金幣', 'player_offer' => '13', 'output' => reply('sell', 13, -1)) }
+
+      it 'is expected to raise ValidationError' do
+        expect { validation_result }.to raise_error(ValidationError, 'Friendship -1 must be 1 or 2 for rude none and an offer worth +1')
+      end
+    end
+
+    context 'when a lowball under half the floor gains friendship' do
+      let(:row) { with('input' => '四金幣', 'player_offer' => '4', 'best_offer' => '8', 'output' => reply('negotiate', 13, 1)) }
+
+      it 'is expected to raise ValidationError' do
+        expect { validation_result }.to raise_error(ValidationError, 'Friendship 1 must be -1 or 0 for rude none and an offer worth -1')
+      end
+    end
+
+    context 'when a rude chat turn keeps friendship' do
+      let(:row) { with('intent' => 'chat', 'rude' => 'mild', 'player_offer' => '', 'output' => reply('talk')) }
+
+      it 'is expected to raise ValidationError' do
+        expect { validation_result }.to raise_error(ValidationError, 'Friendship 0 must be -1 for rude mild')
+      end
+    end
+
+    context 'when a polite chat turn gains friendship' do
+      let(:row) { with('intent' => 'chat', 'player_offer' => '', 'output' => reply('talk', nil, 1)) }
+
+      it { is_expected.to be true }
+    end
+
     context 'when the output is not valid JSON' do
       let(:row) { with('output' => '{invalid') }
 

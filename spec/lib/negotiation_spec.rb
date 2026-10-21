@@ -99,6 +99,28 @@ RSpec.describe Negotiation do
     end
   end
 
+  describe '.offer_friendship' do
+    subject { described_class.offer_friendship(turn_row(epic_neutral, 'player_offer' => offer)) }
+
+    context 'when the offer meets the counter' do
+      let(:offer) { '60' }
+
+      it { is_expected.to eq(1) }
+    end
+
+    context 'when the offer is below the counter but at least half the floor' do
+      let(:offer) { '24' }
+
+      it { is_expected.to eq(0) }
+    end
+
+    context 'when the offer is below half the floor' do
+      let(:offer) { '23' }
+
+      it { is_expected.to eq(-1) }
+    end
+  end
+
   describe '.patience_limit' do
     subject { described_class.patience_limit('Friendly') }
 

@@ -105,12 +105,25 @@ module Validator
         raise ValidationError, "Expected #{describe(expected[:action], expected[:price])} from the negotiation state, " \
                                "got #{describe(reply['action'], actual_price)}"
       end
-      return unless row['intent'] == 'threat' && reply.dig('parameters', 'friendship_change') != THREAT_FRIENDSHIP
-
-      raise ValidationError, 'Threat must change friendship by -3'
+      validate_friendship(row, reply.dig('parameters', 'friendship_change').to_i)
     rescue JSON::ParserError
       # JSON parsing errors are handled by JsonSyntax validator
       nil
+    end
+
+    # Friendship is the behaviour (rude -1, plain 0, polite +1) plus, for an offer, its price against the counter.
+    def validate_friendship(row, change)
+      if row['intent'] == 'threat'
+        return if change == THREAT_FRIENDSHIP
+
+        raise ValidationError, 'Threat must change friendship by -3'
+      end
+      price = row['intent'] == 'offer' ? Negotiation.offer_friendship(row) : 0
+      behaviour = row['rude'] == 'none' ? [0, 1] : [-1]
+      return if behaviour.map { |b| b + price }.include?(change)
+
+      raise ValidationError, "Friendship #{change} must be #{behaviour.map { |b| b + price }.join(' or ')} " \
+                             "for rude #{row['rude']}#{" and an offer worth #{format('%+d', price)}" if row['intent'] == 'offer'}"
     end
 
     def describe(action, price)
