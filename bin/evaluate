@@ -1,0 +1,54 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# link:docs/tools/evaluation.md
+# Command-line tool to score a served model on a dataset split with both NPC calls.
+
+require 'json'
+require 'optparse'
+require_relative '../lib/dataset'
+require_relative '../lib/npc_schema'
+require_relative '../lib/evaluation/evaluation'
+require_relative '../lib/evaluation/inference_client'
+
+usage = 'Usage: bundle exec ruby bin/evaluate path/to/test.csv --endpoint http://127.0.0.1:8080/v1 [options]'
+options = { endpoint: nil, json_schema: false, cache_prompt: true, report: nil }
+
+OptionParser.new do |opts|
+  opts.banner = usage
+  opts.on('-e', '--endpoint URL', 'OpenAI-compatible base URL serving the model') { |url| options[:endpoint] = url }
+  opts.on('--json-schema', 'Constrain each call with its reply schema') { options[:json_schema] = true }
+  opts.on('--no-cache-prompt', 'Ask llama-server not to reuse the previous prompt cache') { options[:cache_prompt] = false }
+  opts.on('-r', '--report PATH', 'Write per-row replies and checks as JSONL') { |path| options[:report] = path }
+end.parse!
+
+file_path = ARGV[0]
+
+if file_path.nil? || options[:endpoint].nil?
+  puts usage
+  exit 1
+end
+
+unless File.exist?(file_path)
+  puts "Error: File '#{file_path}' not found"
+  exit 1
+end
+
+client = lambda do |name, schema|
+  format = { 'type' => 'json_schema', 'json_schema' => { 'name' => name, 'schema' => schema } } if options[:json_schema]
+  Evaluation::InferenceClient.new(options[:endpoint], response_format: format, cache_prompt: options[:cache_prompt])
+end
+
+begin
+  results = Evaluation.new(Dataset.new(file_path), client.call('extract', NpcSchema::EXTRACT),
+                           client.call('render', NpcSchema::RENDER)).execute
+rescue Evaluation::InferenceClient::Error, SystemCallError => e
+  puts "Error: #{e.message}"
+  exit 1
+end
+
+if options[:report]
+  File.open(options[:report], 'w') { |file| results.each { |result| file.puts JSON.generate(result) } }
+end
+
+puts JSON.pretty_generate(Evaluation.summary(results))

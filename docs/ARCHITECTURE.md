@@ -6,6 +6,7 @@ The scripts validate the dataset and convert it into training samples for the tw
 |- bin/
     |- validate # Check rows against the row rules
     |- convert  # Write extract and render samples as JSONL
+    |- evaluate # Tool: score a served model
 |- lib/
     |- dataset.rb      # CSV loader
     |- validation.rb   # Use case: validate a dataset
@@ -13,11 +14,14 @@ The scripts validate the dataset and convert it into training samples for the tw
     |- validator/      # Row validators
     |- conversion.rb   # Use case: convert a split
     |- npc_prompt.rb   # Messages of the extract and render calls
+    |- npc_schema.rb   # Reply schemas of both calls
     |- currency.rb     # Train and test currencies
     |- rebalancing.rb  # Cell caps and copies for training
+    |- evaluation/     # Tool: both calls per row, checks, summary
 |- spec/               # RSpec tests mirroring lib/
 |- docs/
     |- features/       # Dataset features with acceptance criteria
+    |- tools/          # Tools for using the dataset
     |- rubrics/        # Code review criteria
 ```
 
@@ -40,3 +44,12 @@ row ──▶ NpcPrompt.extract ──┐
 ```
 
 Dependencies are injected: use cases take a dataset and an IO, so specs pass arrays and `StringIO`.
+
+## Evaluation
+
+`Evaluation` makes both calls for each row through injected clients, one per reply schema. `Judge` checks the replies and `Summary` adds rates with Wilson lower bounds.
+
+```
+row ──▶ extract client ──▶ Judge.extract ──┐
+    └─▶ render client  ──▶ Judge.render  ──┴──▶ Summary
+```

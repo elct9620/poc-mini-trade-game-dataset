@@ -87,6 +87,8 @@ bundle exec ruby bin/convert train.csv --split train -o train.jsonl
 bundle exec ruby bin/convert test.csv --split test -o test.jsonl
 ```
 
+[Evaluation](docs/tools/evaluation.md) scores a served model on a split with both calls.
+
 ## Data Creation
 
 Labels came first and text second. A script fixed each turn's labels and the game's decision, then Claude Sonnet wrote the player line and the reply to match.

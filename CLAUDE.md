@@ -29,6 +29,7 @@ Emotion is not stored; conversion maps attitude to emotion by the table in the c
 |- bin/
     |- validate              # Check rows against the row rules
     |- convert               # Write extract and render samples as JSONL
+    |- evaluate              # Tool: score a served model on a split
 |- lib/
     |- dataset.rb            # CSV loader
     |- validation.rb         # Validation use case
@@ -36,10 +37,13 @@ Emotion is not stored; conversion maps attitude to emotion by the table in the c
     |- validator/            # Row validators
     |- conversion.rb         # Conversion use case
     |- npc_prompt.rb         # Messages of the extract and render calls
+    |- npc_schema.rb         # Reply schemas of both calls
     |- currency.rb           # Train and test currencies
     |- rebalancing.rb        # Cell caps and copies for training
+    |- evaluation/           # Model evaluation tool (not part of the dataset)
 |- spec/                     # RSpec tests mirror lib/
 |- docs/features/            # Dataset features with acceptance criteria
+|- docs/tools/               # Tools for using the dataset (model evaluation)
 |- docs/rubrics/             # Code review criteria
 ```
 
@@ -69,4 +73,9 @@ bundle exec ruby bin/validate train.csv
 # Convert a split: train rebalances with train currencies; validation and test use --split test
 bundle exec ruby bin/convert train.csv --split train -o train.jsonl
 bundle exec ruby bin/convert test.csv --split test -o test.jsonl
+
+# Score a model served on an OpenAI-compatible endpoint (llama-server); see docs/tools/evaluation.md
+bundle exec ruby bin/evaluate test.csv --endpoint http://127.0.0.1:8080/v1 --json-schema --no-cache-prompt
 ```
+
+Dataset features define and check the data. Tools help use it, such as scoring a fine-tuned model; they reuse the contract but add no requirements to the data.
