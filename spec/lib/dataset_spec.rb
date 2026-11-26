@@ -18,9 +18,9 @@ RSpec.describe Dataset do
     context 'when CSV has multiple rows' do
       before do
         csv_content = <<~CSV
-          id,item_name,item_rarity,item_expected_price,relationship_status,input,output
-          1,Sword,Common,100,Neutral,Buy,"{""action"":""sell""}"
-          2,Shield,Rare,200,Hostile,Buy,"{""action"":""refuse""}"
+          id,item_name,relationship,input
+          1,Sword,allied,Buy
+          2,Shield,hostile,Buy
         CSV
         tempfile.write(csv_content)
         tempfile.rewind
@@ -48,7 +48,7 @@ RSpec.describe Dataset do
     context 'when CSV is empty' do
       before do
         csv_content = <<~CSV
-          id,item_name,item_rarity,item_expected_price,relationship_status,input,output
+          id,item_name,relationship,input
         CSV
         tempfile.write(csv_content)
         tempfile.rewind

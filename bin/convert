@@ -1,24 +1,26 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# link:docs/features/conversion.md
-# Command-line tool to convert a dataset CSV into chat-format JSONL for fine-tuning.
+# link:docs/features/npc-calls.md
+# Command-line tool to convert a dataset CSV into extract and render samples as chat-format JSONL.
 
 require 'optparse'
 require_relative '../lib/dataset'
 require_relative '../lib/conversion'
 
-usage = 'Usage: bundle exec ruby bin/convert path/to/input.csv -o path/to/output.jsonl'
+usage = 'Usage: bundle exec ruby bin/convert path/to/input.csv --split train|test -o path/to/output.jsonl'
 output_path = nil
+split = nil
 
 OptionParser.new do |opts|
   opts.banner = usage
   opts.on('-o', '--output PATH', 'JSONL file to write') { |path| output_path = path }
+  opts.on('--split SPLIT', Conversion::SPLITS.keys, 'train rebalances with train currencies; test keeps rows') { |s| split = s }
 end.parse!
 
 input_path = ARGV[0]
 
-if input_path.nil? || output_path.nil?
+if input_path.nil? || output_path.nil? || split.nil?
   puts usage
   exit 1
 end
@@ -29,5 +31,5 @@ unless File.exist?(input_path)
 end
 
 File.open(output_path, 'w') do |file|
-  Conversion.new(Dataset.new(input_path), file).execute
+  Conversion.new(Dataset.new(input_path), file, split: split).execute
 end

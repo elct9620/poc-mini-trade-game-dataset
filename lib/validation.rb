@@ -8,7 +8,7 @@ require_relative 'validation_error'
 # Uses dependency injection to accept dataset and validators.
 #
 # == Reference
-# - {docs/features/validation.md}[docs/features/validation.md]
+# - {docs/features/npc-calls.md}[docs/features/npc-calls.md]
 ##
 class Validation
   # Creates a new Validation instance.

@@ -8,7 +8,7 @@ require 'csv'
 # Provides enumerable interface for iterating through rows.
 #
 # == Reference
-# - {docs/features/validation.md}[docs/features/validation.md]
+# - {docs/features/npc-calls.md}[docs/features/npc-calls.md]
 ##
 class Dataset
   include Enumerable

@@ -27,240 +27,87 @@ configs:
     path: test.csv
 ---
 
-# Dataset Card for Mini Trade Game NPC Dataset
+# Mini Trade Game NPC Dataset
 
-## Dataset Summary
+Bargaining turns in Traditional Chinese (zh-TW) for fine-tuning a small model to play a merchant NPC. The model only reads the player and phrases replies; the game keeps every rule and number.
 
-This dataset contains synthetic training examples for simulating NPC (Non-Player Character) merchant behavior in a trading game scenario. The dataset is designed to train language models to generate contextually appropriate trading responses based on item properties, relationship status, and player interactions.
+| Call    | Model reads                       | Model writes             |
+|---------|-----------------------------------|--------------------------|
+| Extract | Player line and turn context      | Intent, attitude, offer  |
+| Render  | Player line and the game's result | The NPC's message        |
 
-All examples are in **Traditional Chinese (zh-TW)**, with player inputs and NPC responses using Traditional Chinese characters. The NPC responses are structured as JSON objects containing actions, messages, and game state changes.
+The prompts, fields, and conversion rules are in [NPC Calls](docs/features/npc-calls.md).
 
-## Dataset Details
+## Intended Use
 
-### Dataset Description
+The dataset trains an on-device NPC whose game supplies its terms, such as the currency word. It suits a game that decides actions and prices itself.
 
-This is a proof-of-concept dataset for training AI models to simulate realistic merchant NPC behavior in trading games. The dataset captures various trading scenarios including negotiations, refusals, and successful transactions, with responses that adapt based on relationship status and item rarity.
+| Use                         | Fit                                  |
+|-----------------------------|--------------------------------------|
+| A merchant NPC in a game    | Yes                                  |
+| Other NPC roles             | No, the rows cover a merchant only   |
+| Languages other than zh-TW  | No                                   |
+| Real trading or commerce    | No                                   |
 
-- **Curated by:** Aotokitsuruya (蒼時弦也)
-- **Language:** Traditional Chinese (zh-TW)
-- **License:** Apache-2.0
+## Data Fields
 
-### Dataset Sources
+Each row is one bargaining turn. Prompt fields copy these columns, and conversion swaps the currency word.
 
-- **Repository:** [poc-mini-trade-game-dataset](https://github.com/elct9620/poc-mini-trade-game-dataset)
+| Column                              | Holds                                      |
+|-------------------------------------|--------------------------------------------|
+| `id`, `item_name`                   | Row identity and item                      |
+| `relationship`                      | `hostile`, `neutral`, `friendly`, `allied` |
+| `currency`                          | The currency word in the row's text        |
+| `price`                             | The NPC's price before the turn            |
+| `previous_player`, `previous_npc`   | The previous turn, empty on the first      |
+| `input`                             | The player's line                          |
+| `intent`, `attitude`, `offer`       | What the player does                       |
+| `action`, `action_price`            | What the game decided                      |
+| `message`                           | The NPC's reply                            |
 
-## Uses
+## Data Splits
 
-### Direct Use
+Validation and test use currencies that never appear in training, so they measure whether replies follow an unseen currency.
 
-This dataset can be used to:
-- Train language models to generate NPC merchant dialogue in trading games
-- Fine-tune models for context-aware price negotiation behaviors
-- Create game AI that responds dynamically to player relationship status
-- Generate structured JSON responses for game systems
+| Split      | Rows | Use                  |
+|------------|------|----------------------|
+| train      | 1586 | Fine-tuning          |
+| validation | 309  | Checkpoint selection |
+| test       | 248  | Final scoring        |
 
-### Out-of-Scope Use
+Items never repeat across splits.
 
-This dataset is **not** suitable for:
-- Real-world trading or e-commerce applications
-- Languages other than Traditional Chinese
-- Non-game dialogue systems
-- Scenarios requiring legal or financial advice
+## Usage
 
-## Dataset Structure
+Convert each split into chat-format JSONL. Train is rebalanced per call; validation and test keep every row once.
 
-The dataset consists of CSV files with the following structure:
-
-### Data Fields
-
-- `id` (integer): Unique identifier for each example
-- `item_name` (string): Name of the item being traded (in Traditional Chinese)
-- `item_rarity` (string): Item rarity level - one of: `Common`, `Rare`, or `Epic`
-- `item_expected_price` (integer): Expected fair market price for the item
-- `relationship_status` (string): Current relationship with player - one of: `Hostile`, `Neutral`, `Friendly`, or `Allied`
-- `input` (string): Player's message or prompt (in Traditional Chinese)
-- `output` (string): NPC's JSON response containing action, message, and parameters
-- `round`, `patience`, `counter_price`, `best_offer`, `last_offer` (integer): Bargaining state before the turn; empty on single-turn rows
-- `intent` (string), `rude` (`none`, `mild`, or `severe`), `player_offer` (integer): Labels for reading the player's bargaining message; empty on single-turn rows. Mild rudeness (disparaging the goods or price) ends a negotiation only with a Hostile merchant; severe rudeness (insults, accusing the merchant of cheating, demanding it for free) also with a Neutral one
-- `previous_input`, `previous_reply` (string): The previous turn's player line and merchant message in the same negotiation; empty on the first turn and on single-turn rows
-
-A bargaining row is one turn of a multi-turn haggle. The game keeps the negotiation state and computes every price, so the model reads the player's intent and offer in one call and replies in another; see [bargaining](docs/features/bargaining.md) for the rules and prompts.
-
-### Output Format
-
-All NPC responses follow this JSON structure:
-
-```json
-{
-  "action": "sell" | "refuse" | "negotiate" | "talk",
-  "message": "string (message to player in Traditional Chinese)",
-  "parameters": {
-    "price": number,              // required for sell/negotiate actions
-    "friendship_change": number   // ranges from -3 to +3
-  }
-}
+```bash
+bundle exec ruby bin/validate train.csv
+bundle exec ruby bin/convert train.csv --split train -o train.jsonl
+bundle exec ruby bin/convert test.csv --split test -o test.jsonl
 ```
 
-### Data Splits
+## Data Creation
 
-| Split      | Examples | Single-turn | Bargaining | Use                               |
-|------------|----------|-------------|------------|-----------------------------------|
-| train      | 3046     | 1650        | 1396       | Fine-tuning                       |
-| validation | 473      | 205         | 268        | Checkpoint selection              |
-| test       | 403      | 205         | 198        | Final scoring with `bin/evaluate` |
+Labels came first and text second. A script fixed each turn's labels and the game's decision, then Claude Sonnet wrote the player line and the reply to match.
 
-The single-turn rows are an 80/10/10 division of all labelled rows, stratified by action, relationship status, and rarity so each split keeps the same mix. Bargaining turns follow the same ratio, except that validation holds extra turns so checkpoint selection sees at least 30 deals. Items never repeat across splits, and no player line in validation or test is worded like one in train (checked with `bin/diversity --against`), so validation and test measure generalization to unseen items and phrasings. Select checkpoints by `bin/evaluate` scores on validation rather than eval loss: most of the loss comes from free-form dialogue wording, so it bottoms out earlier than decision accuracy peaks.
+| Step   | Source                               |
+|--------|--------------------------------------|
+| Labels | Simulated negotiations               |
+| Text   | Claude Sonnet, checked for Taiwan usage |
+| Check  | `bin/validate`                       |
 
-## Game Mechanics
+## Limitations
 
-### Rarity-Based Pricing Rules
+The text is synthetic and written by one model. Real players differ in measurable ways.
 
-The pricing behavior varies by item rarity:
+| Limitation       | Evidence                                    |
+|------------------|---------------------------------------------|
+| Long lines       | Median 16 characters; few offers are short  |
+| Offers with units | Most offers write a currency word          |
+| One NPC voice    | Every reply is the same merchant            |
+| Fantasy items    | Item names and small talk are fantasy       |
 
-- **Common**: Can be sold below expected price
-- **Rare**: Should not be sold below expected price
-- **Epic**: Must be sold at or above expected price
+## Contact
 
-### Friendship System
-
-Friendship ranges from -10 to +10, mapped to relationship statuses:
-
-| Range | Status | Pricing Behavior |
-|-------|--------|------------------|
-| -10 to -6 | Hostile | Only high prices accepted |
-| -5 to -1 | Neutral | Fair prices accepted |
-| 0 to +5 | Friendly | Fair and low prices accepted |
-| +6 to +10 | Allied | Any price accepted |
-
-### Friendship Changes
-
-Player behavior affects friendship points:
-
-- **Rude/disrespectful behavior**: -1
-- **Polite/respectful behavior**: +1
-- **Fair price offer**: +1
-- **Low price offer**: -1
-- **High price offer**: +1
-- **Threat or attempted theft**: -3 (replaces the other effects)
-
-Effects stack and are constrained to **-3 to +3** per interaction. The change depends only on player behavior, never on the current relationship.
-
-### Asking Price and Actions
-
-Each prompt carries an **Asking Price**: the expected price times a ratio for the rarity and relationship (Common 1.3/1.0/0.8/0.7, Rare 1.5/1.0/1.0/0.85, Epic 2.0/1.2/1.0/1.0 for Hostile/Neutral/Friendly/Allied), rounded up. The NPC's action follows this matrix:
-
-| Player behaviour | Hostile | Neutral | Friendly | Allied |
-|---|---|---|---|---|
-| Chat (not buying) | talk | talk | talk | talk |
-| Threat or theft | refuse | refuse | refuse | refuse |
-| Rude | refuse | refuse | negotiate @asking | negotiate @asking |
-| Wants to buy, or haggles, without a number | negotiate @asking | Common: sell @asking; Rare/Epic: negotiate @asking | sell @asking | sell @asking |
-| Asks the price | negotiate @asking | negotiate @asking | sell @asking | sell @asking |
-| Offers the expected price | offer ≥ asking: sell @offer; else refuse | offer ≥ asking: sell @offer; else negotiate @asking | sell @asking | sell @asking |
-| Politely offers above expected | offer ≥ asking: sell @offer; else negotiate @asking | same as Hostile | sell @asking | sell @asking |
-| Offers below expected | refuse | Common: negotiate @asking; Rare/Epic: refuse | negotiate @asking | offer ≥ half of expected: sell @offer; else negotiate @asking |
-
-The exceptions are deliberate merchant personality, not noise:
-- A neutral merchant sells cheap goods outright but quotes before parting with valuable ones.
-- A hostile merchant does not haggle: an offer short of the asking price is refused.
-- Lowballing a valuable item insults a neutral merchant, while a cheap item is still worth a counter-offer.
-- Friends tolerate rudeness and counter instead of refusing.
-- Friends never overcharge: they sell at the asking price even when offered more.
-- An ally accepts any reasonable low offer, matching "Allied: any price".
-
-## Dataset Creation
-
-### Curation Rationale
-
-This dataset was created to provide training data for developing more realistic and engaging NPC behavior in trading games. Traditional game NPCs often use static dialogue trees, but this dataset enables AI-driven NPCs that can respond dynamically to player behavior and context.
-
-### Source Data
-
-#### Data Collection and Processing
-
-Data synthesis is **GitHub issue-driven** using Claude Code:
-
-1. Create a GitHub issue with instructions to generate a new trading example
-2. Tag @claude in the issue body or title to trigger the GitHub Action
-3. Claude Code Action generates the example and appends it to `train.csv` or `test.csv`
-
-New rows are appended with incrementing IDs. JSON outputs in CSV are properly escaped (double quotes as `""`).
-
-Bulk additions follow the same pricing policy as the original rows: each scenario's action, price, and friendship change are fixed first, and the Chinese dialogue is written to match. Dialogue wording is checked for Taiwan usage with `zhtw-mcp lint`.
-
-Bargaining turns come from simulated negotiations: the game rules in `lib/negotiation.rb` decide every state, label, action, and price, and Claude Sonnet writes only the player line and the merchant reply. Each generated batch must pass [`bin/diversity`](docs/tools/diversity.md), which rejects repeated wording and wording that gives away whether an offer closes a deal.
-
-#### Source Data Producers
-
-All examples are synthetically generated by Claude Code (Anthropic's Claude Sonnet) following the system prompt template below.
-
-### System Prompt Template
-
-When generating examples, the following system prompt is used:
-
-```
-You are trading with player in a trade game. Based on the context, you will decide what action to take. You can choose to sell or not sell to the player.
-
-Current Inventory:
-- Name: {item_name}
-- Rarity: {item_rarity}
-- Expected Price: {item_expected_price}
-- Asking Price: {item_asking_price}
-
-Relatioship: {relationship_status}
-
-You must respond with a JSON object with the following format:
-{
-  "action": "sell" | "refuse" | "negotiate" | "talk",
-  "message": string (the message to the player),
-  "parameters": {
-    "price": number (only if action is "sell" or "negotiate")
-    "friendship_change": number (the change in friendship points based on the user's action, can be negative)
-  }
-}
-```
-
-### Validation
-
-All dataset entries are validated using a Ruby-based validation script (`bin/validate`) that checks:
-
-- JSON validity in `output` column
-- Valid action types: `sell`, `refuse`, `negotiate`, `talk`
-- Valid rarity values: `Common`, `Rare`, `Epic`
-- Valid relationship status: `Hostile`, `Neutral`, `Friendly`, `Allied`
-- Expected price > 0
-- Price > 0 for `sell`/`negotiate` actions
-- Friendship change between -3 and 3
-- Price ranges based on rarity and relationship rules
-
-## Bias, Risks, and Limitations
-
-### Known Limitations
-
-1. **Language**: Dataset is exclusively in Traditional Chinese (zh-TW) - not suitable for other languages or locales
-2. **Cultural Context**: Reflects trading behaviors and politeness norms in Traditional Chinese gaming culture
-3. **Synthetic Data**: All examples are AI-generated, not based on real player interactions
-4. **Game Mechanics**: Fixed game rules may not generalize to all trading game scenarios
-5. **Scale**: 1650 training, 205 validation and 205 test examples
-
-### Recommendations
-
-Users should be aware that:
-- Models trained on this dataset will only produce Traditional Chinese responses
-- The friendship and pricing mechanics are simplified and may not reflect complex real-world trading
-- Additional fine-tuning may be needed for specific game contexts
-- Validation should be performed when using in production game environments
-
-## Example
-
-| item_name | item_rarity | item_expected_price | relationship_status | input                        | output                                                                                                                      |
-|-----------|-------------|---------------------|---------------------|------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
-| 勇者之劍  | Rare        | 100                 | Friendly            | 我想用 90 元買勇者之劍。     | {"action": "negotiate", "message": "我可以用 95 元賣給你勇者之劍。", "parameters": {"price": 95, "friendship_change": 1}}   |
-| 光明之盾  | Epic        | 200                 | Neutral             | 這個盾牌不錯,多少錢?         | {"action": "talk", "message": "光明之盾是稀有物品,我不能低價出售。", "parameters": {}}                                      |
-| 治療藥水  | Common      | 50                  | Hostile             | 我需要治療藥水,30 元賣給我。 | {"action": "refuse", "message": "我不能用那個價格賣給你治療藥水。", "parameters": {"friendship_change": -1}}                |
-| 力量戒指  | Epic        | 300                 | Allied              | 我出 350 元買力量戒指。      | {"action": "sell", "message": "成交!力量戒指是你的了,350 元。", "parameters": {"price": 350, "friendship_change": 1}}       |
-| 疾風之靴  | Rare        | 150                 | Friendly            | 疾風之靴可以便宜一點嗎?      | {"action": "negotiate", "message": "我可以用 140 元賣給你疾風之靴。", "parameters": {"price": 140, "friendship_change": 1}} |
-
-## Dataset Card Contact
-
-For questions or issues, please open an issue in the [GitHub repository](https://github.com/elct9620/poc-mini-trade-game-dataset/issues).
+Open an issue in the [GitHub repository](https://github.com/elct9620/poc-mini-trade-game-dataset/issues).

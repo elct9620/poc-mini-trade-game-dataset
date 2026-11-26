@@ -5,7 +5,7 @@
 # Custom error class for validation failures.
 #
 # == Reference
-# - {docs/features/validation.md}[docs/features/validation.md]
+# - {docs/features/npc-calls.md}[docs/features/npc-calls.md]
 ##
 class ValidationError < StandardError
 end

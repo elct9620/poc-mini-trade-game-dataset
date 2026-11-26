@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# link:docs/features/validation.md
+# link:docs/features/npc-calls.md
 # Command-line tool to validate CSV files for the mini trade game dataset.
-# Ensures JSON validity and game mechanics constraints.
+# Checks every row against the dataset row rules.
 
 require_relative '../lib/dataset'
 require_relative '../lib/validation'

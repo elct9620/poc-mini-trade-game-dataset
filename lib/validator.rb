@@ -1,36 +1,20 @@
 # frozen_string_literal: true
 
-require_relative 'validator/json_syntax'
-require_relative 'validator/schema_validator'
-require_relative 'validator/rarity_validator'
-require_relative 'validator/relationship_validator'
-require_relative 'validator/expected_price_validator'
-require_relative 'validator/price_range_validator'
-require_relative 'validator/bargaining_validator'
+require_relative 'validator/column_validator'
+require_relative 'validator/label_validator'
 
 ##
 # = Validator
-# Groups the dataset rule validators.
-# Validation and evaluation share the same set so a model output is judged by the dataset rules.
+# Groups the dataset row validators.
 #
 # == Reference
-# - {docs/features/validation.md}[docs/features/validation.md]
-# - {docs/features/bargaining.md}[docs/features/bargaining.md]
-# - {docs/tools/evaluation.md}[docs/tools/evaluation.md]
+# - {docs/features/npc-calls.md}[docs/features/npc-calls.md]
 ##
 module Validator
   module_function
 
-  # Returns a new instance of every rule validator.
+  # Returns a new instance of every row validator, columns first so labels are checked on complete rows.
   def all
-    [
-      RarityValidator.new,
-      RelationshipValidator.new,
-      ExpectedPriceValidator.new,
-      JsonSyntax.new,
-      SchemaValidator.new,
-      PriceRangeValidator.new,
-      BargainingValidator.new
-    ]
+    [ColumnValidator.new, LabelValidator.new]
   end
 end

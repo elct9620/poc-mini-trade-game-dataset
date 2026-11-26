@@ -8,6 +8,6 @@ RSpec.describe Validator do
     subject(:validators) { described_class.all }
 
     it { expect(validators).to all(respond_to(:validate)) }
-    it { expect(validators.map(&:class)).to include(Validator::JsonSyntax, Validator::PriceRangeValidator, Validator::BargainingValidator) }
+    it { expect(validators.map(&:class)).to eq([Validator::ColumnValidator, Validator::LabelValidator]) }
   end
 end

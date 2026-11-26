@@ -14,7 +14,7 @@ module Validator
   # end
   #
   # == Reference
-  # - {docs/features/validation.md}[docs/features/validation.md]
+  # - {docs/features/npc-calls.md}[docs/features/npc-calls.md]
   ##
   class BaseValidator
     def validate(row)

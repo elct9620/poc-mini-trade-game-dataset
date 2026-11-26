@@ -3,57 +3,52 @@
 require 'spec_helper'
 require 'json'
 require 'stringio'
+require_relative '../support/rows'
 require_relative '../../lib/conversion'
+require_relative '../../lib/currency'
 
 RSpec.describe Conversion do
   describe '#execute' do
-    subject(:execute) { described_class.new(dataset, io).execute }
+    subject(:execute) { described_class.new(rows, io, split: split).execute }
 
     let(:io) { StringIO.new }
-    let(:lines) { io.string.lines.map { |line| JSON.parse(line) } }
+    let(:lines) { io.string.lines.map { |line| JSON.parse(line)['messages'] } }
+    let(:currencies) { lines.map { |messages| messages[0]['content'][/currency: (\S+)/, 1] } }
+    let(:rows) { [VALID_ROW, VALID_ROW.merge('id' => '2', 'item_name' => '舊電路板')] }
 
-    context 'when dataset has rows' do
-      let(:dataset) do
-        [
-          { 'item_name' => '鐵劍', 'item_rarity' => 'Common', 'item_expected_price' => '100',
-            'relationship_status' => 'Friendly', 'input' => '我要買劍', 'output' => '{"action":"sell"}' },
-          { 'item_name' => '精靈弓', 'item_rarity' => 'Rare', 'item_expected_price' => '500',
-            'relationship_status' => 'Hostile', 'input' => '給我弓', 'output' => '{"action":"refuse"}' }
-        ]
+    context 'when the split is test' do
+      let(:split) { 'test' }
+
+      it { is_expected.to eq(4) }
+
+      it 'is expected to write every extract sample, then every render sample' do
+        execute
+        expect(lines.map { |messages| messages[0]['content'][/# Task\n(\w+)/, 1] }).to eq(%w[extract extract render render])
       end
 
-      it { is_expected.to eq(2) }
-
-      it 'is expected to write one line per row' do
+      it 'is expected to use only test currencies' do
         execute
-        expect(lines.size).to eq(2)
-      end
-
-      it 'is expected to end each line with the row output as assistant reply' do
-        execute
-        expect(lines.map { |line| line['messages'].last['content'] }).to eq(['{"action":"sell"}', '{"action":"refuse"}'])
+        expect(currencies).to all(satisfy { |c| Currency::TEST.include?(c) })
       end
     end
 
-    context 'when dataset has a bargaining row' do
-      let(:dataset) do
-        [{ 'item_name' => '長劍', 'item_rarity' => 'Epic', 'item_expected_price' => '40', 'relationship_status' => 'Neutral',
-           'input' => '50金幣如何？', 'output' => '{"action":"negotiate"}', 'round' => '2', 'patience' => '3',
-           'counter_price' => '60', 'best_offer' => '', 'last_offer' => '', 'intent' => 'offer', 'rude' => 'none',
-           'player_offer' => '50' }]
+    context 'when the split is train' do
+      let(:split) { 'train' }
+
+      it 'is expected to use only train currencies' do
+        execute
+        expect(currencies).to all(satisfy { |c| Currency::TRAIN.include?(c) })
       end
 
-      it { is_expected.to eq(2) }
-
-      it 'is expected to write the extraction reply then the response reply' do
+      it 'is expected to write no identical samples' do
         execute
-        expect(lines.map { |line| line['messages'].last['content'] })
-          .to eq(['{"intent":"offer","rude":"none","player_offer":50}', '{"action":"negotiate"}'])
+        expect(lines.uniq.size).to eq(lines.size)
       end
     end
 
-    context 'when dataset is empty' do
-      let(:dataset) { [] }
+    context 'when the dataset is empty' do
+      let(:rows) { [] }
+      let(:split) { 'test' }
 
       it { is_expected.to eq(0) }
     end
