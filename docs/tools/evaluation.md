@@ -104,6 +104,18 @@ Whether the message carries out the action, such as leaving instead of selling, 
 
 Latency is the seconds a row took for both calls, a whole turn.
 
+## Release Gate
+
+A model is releasable when its single test run meets every gate by the Wilson lower bound. Gates judge extraction and rendering only, never a game's decisions, so the model stays independent of any one game's rules. Render quality has no automatic measure yet, so it is spot-checked instead.
+
+| Check                          | Gate                                   |
+|--------------------------------|----------------------------------------|
+| `json_valid`, both calls       | No failure                             |
+| `extract_match`                | Lower bound ≥ 0.85                     |
+| `price_said`                   | Lower bound ≥ 0.90                     |
+| `currency_own`, `currency_foreign` | Reported until a baseline exists   |
+| Render quality                 | Read 2 reports per action × emotion cell |
+
 ## Acceptance Criteria
 
 The tool is complete when these hold:
