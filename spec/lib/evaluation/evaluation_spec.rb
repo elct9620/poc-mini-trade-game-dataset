@@ -45,6 +45,22 @@ RSpec.describe Evaluation do
     end
   end
 
+  describe '#execute with collision' do
+    subject(:results) { described_class.new(rows, extract_client, render_client, collision: true).execute }
+
+    let(:rows) do
+      [VALID_ROW.merge('id' => 'names', 'input' => '這豎琴3619金幣。'), VALID_ROW.merge('id' => 'silent', 'previous_player' => '')]
+    end
+
+    it { expect(results.map { |result| result['id'] }).to eq(['names']) }
+    it { expect(results.first['currency']).to eq('豎琴') }
+
+    it 'is expected to write the colliding word as the unit of the offer' do
+      results
+      expect(extract_client.requests.first[1]['content']).to eq('這豎琴3619豎琴。')
+    end
+  end
+
   describe '.summary' do
     subject(:summary) { described_class.summary(described_class.new([VALID_ROW], extract_client, render_client).execute) }
 

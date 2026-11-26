@@ -21,4 +21,16 @@ module Currency
   def pick(row, list, copy = 0)
     list[(Zlib.crc32(row['item_name'].to_s) + copy) % list.size]
   end
+
+  # Returns a currency that collides with the item: the item name's last two characters, such as 鎖鏈 for 銀鎖鏈.
+  # A line naming the item then holds the same word as a noun and as the unit of the price.
+  def collision(row)
+    row['item_name'].to_s[-2..]
+  end
+
+  # Returns whether the row's line or previous turn names the collision currency as a noun.
+  def collides?(row)
+    word = collision(row)
+    !word.nil? && [row['input'], row['previous_player']].any? { |text| text.to_s.include?(word) }
+  end
 end

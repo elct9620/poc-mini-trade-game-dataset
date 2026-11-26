@@ -20,6 +20,32 @@ RSpec.describe Currency do
     end
   end
 
+  describe '.collision' do
+    it { expect(described_class.collision({ 'item_name' => '銀鎖鏈' })).to eq('鎖鏈') }
+  end
+
+  describe '.collides?' do
+    subject { described_class.collides?(row) }
+
+    context 'when the line names the item' do
+      let(:row) { { 'item_name' => '銀鎖鏈', 'input' => '這鎖鏈1214金幣就好。' } }
+
+      it { is_expected.to be(true) }
+    end
+
+    context 'when only the previous turn names the item' do
+      let(:row) { { 'item_name' => '銀鎖鏈', 'input' => '1214金幣。', 'previous_player' => '鎖鏈多少？' } }
+
+      it { is_expected.to be(true) }
+    end
+
+    context 'when the line does not name the item' do
+      let(:row) { { 'item_name' => '銀鎖鏈', 'input' => '1214金幣就好。' } }
+
+      it { is_expected.to be(false) }
+    end
+  end
+
   describe 'TRAIN' do
     it { expect(Currency::TRAIN & Currency::TEST).to be_empty }
   end

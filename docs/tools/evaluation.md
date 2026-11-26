@@ -20,9 +20,22 @@ bundle exec ruby bin/evaluate test.csv --endpoint http://127.0.0.1:8080/v1 --jso
 | `--endpoint`        | Base URL serving the model                           |
 | `--json-schema`     | Send each call's reply schema as `response_format`   |
 | `--no-cache-prompt` | Send `cache_prompt: false` to llama-server           |
+| `--collision`       | Score only rows where the currency collides with a noun |
 | `--report`          | Write each row's replies and checks as JSONL         |
 
 Prompts use the test currencies, as a test conversion does. Replies use greedy decoding so runs repeat.
+
+### Collision Check
+
+A game's currency word can also be an ordinary noun, as 寶石 is. `--collision` measures whether extract still reads the offer when the same word names the item and the unit of the price.
+
+| Rule     | Behaviour                                              |
+|----------|--------------------------------------------------------|
+| Currency | The item name's last two characters, such as 鎖鏈       |
+| Rows     | Only rows whose line or previous turn names that word  |
+| Example  | 這鎖鏈1214鎖鏈就好                                      |
+
+Read `offer_match` and `intent_match` from this run. Test has 118 such rows, 53 of them offers.
 
 ### Prompt Cache
 

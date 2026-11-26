@@ -12,13 +12,14 @@ require_relative '../lib/evaluation/evaluation'
 require_relative '../lib/evaluation/inference_client'
 
 usage = 'Usage: bundle exec ruby bin/evaluate path/to/test.csv --endpoint http://127.0.0.1:8080/v1 [options]'
-options = { endpoint: nil, json_schema: false, cache_prompt: true, report: nil }
+options = { endpoint: nil, json_schema: false, cache_prompt: true, collision: false, report: nil }
 
 OptionParser.new do |opts|
   opts.banner = usage
   opts.on('-e', '--endpoint URL', 'OpenAI-compatible base URL serving the model') { |url| options[:endpoint] = url }
   opts.on('--json-schema', 'Constrain each call with its reply schema') { options[:json_schema] = true }
   opts.on('--no-cache-prompt', 'Ask llama-server not to reuse the previous prompt cache') { options[:cache_prompt] = false }
+  opts.on('--collision', 'Score rows naming the item, with the item word as the currency') { options[:collision] = true }
   opts.on('-r', '--report PATH', 'Write per-row replies and checks as JSONL') { |path| options[:report] = path }
 end.parse!
 
@@ -41,7 +42,7 @@ end
 
 begin
   results = Evaluation.new(Dataset.new(file_path), client.call('extract', NpcSchema::EXTRACT),
-                           client.call('render', NpcSchema::RENDER)).execute
+                           client.call('render', NpcSchema::RENDER), collision: options[:collision]).execute
 rescue Evaluation::InferenceClient::Error, SystemCallError => e
   puts "Error: #{e.message}"
   exit 1

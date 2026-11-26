@@ -20,19 +20,20 @@ class Evaluation
   # dataset - The rows to evaluate.
   # extract_client - An object that responds to complete(messages) for the extract call.
   # render_client - The same for the render call.
-  def initialize(dataset, extract_client, render_client)
+  # collision - true scores only rows whose line names the item, with the item's word as the currency.
+  def initialize(dataset, extract_client, render_client, collision: false)
     @dataset = dataset
     @extract_client = extract_client
     @render_client = render_client
+    @collision = collision
   end
 
   # Executes the evaluation.
   #
   # Returns one hash per row with both replies, their checks, and the turn's latency in seconds.
   def execute
-    @dataset.map do |row|
-      row = row.to_h
-      currency = Currency.pick(row, Currency::TEST)
+    rows.map do |row|
+      currency = @collision ? Currency.collision(row) : Currency.pick(row, Currency::TEST)
       (extract, render), latency = timed do
         [@extract_client.complete(NpcPrompt.extract(row, currency)[0..-2]),
          @render_client.complete(NpcPrompt.render(row, currency)[0..-2])]
@@ -48,6 +49,11 @@ class Evaluation
   end
 
   private
+
+  def rows
+    all = @dataset.map(&:to_h)
+    @collision ? all.select { |row| Currency.collides?(row) } : all
+  end
 
   def timed
     started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
