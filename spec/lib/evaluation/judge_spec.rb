@@ -49,23 +49,35 @@ RSpec.describe Evaluation::Judge do
 
     let(:row) { VALID_ROW }
 
-    context 'when the message says the price in the prompt currency' do
-      let(:message) { '差太多了，4606星幣，這已經很低了。' }
+    context 'when the message writes the price and currency as slots' do
+      let(:message) { '差太多了，{price}{currency}，這已經很低了。' }
 
-      it 'is expected to pass every check and name no other currency' do
+      it 'is expected to pass every check and name no currency itself' do
         expect(checks).to eq('json_valid' => true, 'message_clean' => true, 'message_traditional' => true,
                              'currency_foreign' => false, 'price_said' => true, 'currency_own' => true)
       end
     end
 
-    context 'when the message keeps the training currency' do
-      let(:message) { '差太多了，4606金幣。' }
+    context 'when the message writes the currency word itself' do
+      let(:message) { '差太多了，{price}星幣。' }
 
       it { is_expected.to include('currency_foreign' => true, 'currency_own' => false) }
     end
 
+    context 'when a currency word is an ordinary noun in the message' do
+      let(:message) { '靠裡面的紅寶石軸承，{price}{currency}。' }
+
+      it { is_expected.to include('currency_foreign' => false) }
+    end
+
+    context 'when the message writes the price in digits' do
+      let(:message) { '差太多了，4606{currency}。' }
+
+      it { is_expected.to include('message_clean' => false, 'price_said' => false) }
+    end
+
     context 'when the message drifts into Latin or simplified characters' do
-      let(:message) { '这个 ok，4606星幣。' }
+      let(:message) { '这个 ok，{price}{currency}。' }
 
       it { is_expected.to include('message_clean' => false, 'message_traditional' => false) }
     end

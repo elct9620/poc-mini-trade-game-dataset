@@ -15,9 +15,17 @@ RSpec.describe Validator::LabelValidator do
     end
 
     context 'when a talk turn has no offer and no price' do
-      let(:row) { VALID_ROW.merge('intent' => 'chat', 'offer' => '', 'action' => 'talk', 'action_price' => '') }
+      let(:row) do
+        VALID_ROW.merge('intent' => 'chat', 'offer' => '', 'action' => 'talk', 'action_price' => '', 'message' => '慢走。')
+      end
 
       it { is_expected.to be(true) }
+    end
+
+    context 'when the message names a number that is neither the price nor the offer' do
+      let(:row) { VALID_ROW.merge('message' => '上次5000金幣，這次4606金幣。') }
+
+      it { expect { validate }.to raise_error(ValidationError, 'Message number 5000 is neither the price nor the offer') }
     end
 
     context 'when a label is outside its values' do
@@ -39,7 +47,7 @@ RSpec.describe Validator::LabelValidator do
     end
 
     context 'when a leave carries a price' do
-      let(:row) { VALID_ROW.merge('action' => 'leave') }
+      let(:row) { VALID_ROW.merge('action' => 'leave', 'message' => '不談了。') }
 
       it { expect { validate }.to raise_error(ValidationError, "'action_price' must be set only for sell or counter") }
     end

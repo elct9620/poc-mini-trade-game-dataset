@@ -50,12 +50,34 @@ RSpec.describe NpcPrompt do
       )
     end
 
-    it { expect(JSON.parse(messages[2]['content'])).to eq('message' => '差太多了啦，4606銀幣，這已經很低了。') }
+    it { expect(JSON.parse(messages[2]['content'])).to eq('message' => '差太多了啦，{price}{currency}，這已經很低了。') }
 
     context 'when the NPC leaves' do
       let(:row) { VALID_ROW.merge('intent' => 'chat', 'offer' => '', 'action' => 'leave', 'action_price' => '') }
 
       it { expect(messages[0]['content']).to include("action: leave\nprice: none\nplayer_offer: none") }
+    end
+  end
+
+  describe '.slotted' do
+    subject { described_class.slotted(row) }
+
+    context 'when the message names the player offer and the counter' do
+      let(:row) { VALID_ROW.merge('message' => '3619金幣太少了，4606金幣。') }
+
+      it { is_expected.to eq('{offer}{currency}太少了，{price}{currency}。') }
+    end
+
+    context 'when the NPC sells at the player offer' do
+      let(:row) { VALID_ROW.merge('action' => 'sell', 'action_price' => '3619', 'message' => '好，3619金幣成交。') }
+
+      it { is_expected.to eq('好，{price}{currency}成交。') }
+    end
+
+    context 'when a number contains the price' do
+      let(:row) { VALID_ROW.merge('action_price' => '46', 'offer' => '', 'message' => '4606金幣，不是46金幣。') }
+
+      it { is_expected.to eq('4606{currency}，不是{price}{currency}。') }
     end
   end
 
@@ -81,6 +103,27 @@ RSpec.describe NpcPrompt do
       let(:action) { 'sell' }
 
       it { is_expected.to eq('pleased') }
+    end
+
+    context 'when the NPC leaves a polite player' do
+      let(:attitude) { 'polite' }
+      let(:action) { 'leave' }
+
+      it { is_expected.to eq('annoyed') }
+    end
+
+    context 'when the NPC leaves a plain player' do
+      let(:attitude) { 'plain' }
+      let(:action) { 'leave' }
+
+      it { is_expected.to eq('annoyed') }
+    end
+
+    context 'when the NPC leaves a severely rude player' do
+      let(:attitude) { 'severe' }
+      let(:action) { 'leave' }
+
+      it { is_expected.to eq('angry') }
     end
 
     context 'when the line is mildly rude' do

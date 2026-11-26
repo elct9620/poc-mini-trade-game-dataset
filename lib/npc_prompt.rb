@@ -30,12 +30,25 @@ module NpcPrompt
     turn = ["item: #{row['item_name']}", "relationship: #{row['relationship']}", "action: #{row['action']}",
             "price: #{integer(row['action_price']) || 'none'}", "player_offer: #{integer(row['offer']) || 'none'}",
             "emotion: #{emotion(row)}"]
-    reply = { 'message' => swap.call(row['message']) }
+    reply = { 'message' => slotted(row) }
     messages(system(currency, 'render', turn), swap.call(row['input']), JSON.generate(reply))
   end
 
-  # Returns the emotion the game gives render: it follows the attitude, and a plain line that reaches a sale pleases.
+  # Returns the row's message with its values as slots: the action price as {price}, the player's offer as {offer},
+  # and the currency word as {currency}. The price goes first, so an offer equal to the price becomes {price}.
+  def slotted(row)
+    text = row['message'].to_s
+    { 'action_price' => '{price}', 'offer' => '{offer}' }.each do |column, slot|
+      text = text.gsub(/(?<!\d)#{Regexp.escape(row[column])}(?!\d)/, slot) unless row[column].to_s.empty?
+    end
+    text.gsub(row['currency'].to_s, '{currency}')
+  end
+
+  # Returns the emotion the game gives render. It follows the attitude, except that a plain line reaching a sale
+  # pleases, and an NPC that leaves without anger has run out of patience.
   def emotion(row)
+    calm = %w[polite plain].include?(row['attitude'])
+    return 'annoyed' if row['action'] == 'leave' && calm
     return 'pleased' if row['action'] == 'sell' && row['attitude'] == 'plain'
 
     EMOTION.fetch(row['attitude'])

@@ -60,11 +60,11 @@ Render metrics read the reply's message. Two metrics count only the rows they ap
 | Metric                | Rows                    | A row counts when                            |
 |-----------------------|-------------------------|----------------------------------------------|
 | `json_valid`          | All                     | The reply parses as a JSON object            |
-| `message_clean`       | All                     | The message uses only the message characters |
+| `message_clean`       | All                     | The message uses only message characters and slots |
 | `message_traditional` | All                     | The message has no simplified character      |
-| `currency_foreign`    | All                     | The message names a currency not in the prompt |
-| `price_said`          | `sell` or `counter`     | The message writes the price in digits       |
-| `currency_own`        | Reference names a currency | The message names the prompt's currency   |
+| `currency_foreign`    | All                     | The message writes a currency word instead of the slot |
+| `price_said`          | `sell` or `counter`     | The message has the `{price}` slot           |
+| `currency_own`        | Reference names a currency | The message has the `{currency}` slot     |
 
 `currency_foreign` is the only metric where lower is better. Known currencies are the train and test lists.
 

@@ -96,7 +96,16 @@ The reply names what the player does, never what the NPC does about it.
 | `attitude` | `polite`, `plain`, `mild`, `severe`           |
 | `offer`    | Price written in the line, else `null`        |
 
-Attitude is one field because politeness and rudeness never occur in the same line. Mild is disparaging the goods or a sharp tone; severe is insults or demanding it free.
+Attitude is one field because politeness and rudeness never occur in the same line. Each value names what the line does.
+
+| Attitude | The line                                                   |
+|----------|------------------------------------------------------------|
+| `polite` | Greets, thanks, praises, or asks nicely (拜託, 麻煩, 請, 不好意思) |
+| `plain`  | Does none of the others                                    |
+| `mild`   | Disparages the goods or price, or has a sharp tone         |
+| `severe` | Insults, accuses the NPC of cheating, or demands it free   |
+
+Rudeness wins over politeness, so a line that pleads and insults is rude.
 
 ## Render Call
 
@@ -126,11 +135,27 @@ Action is what the NPC does now; emotion is how the player's line made it feel. 
 
 ### Render Reply
 
-The reply is the NPC's line only.
+The reply is the NPC's line only, with slots where the game writes its values. The model never writes a number or a currency word itself, so neither can come out wrong.
 
 ```json
-{"message":"差太多了啦，4606銀幣，這已經很低了。"}
+{"message":"差太多了啦，{price}{currency}，這已經很低了。"}
 ```
+
+| Slot         | The game writes           |
+|--------------|---------------------------|
+| `{price}`    | The turn's `price`        |
+| `{offer}`    | The turn's `player_offer` |
+| `{currency}` | World `currency`          |
+
+### Slot Conversion
+
+Dataset messages keep their literal text, and conversion turns the values into slots. Every number in a message is the action price or the player's offer, and every currency word follows one.
+
+1. Replace the row's `action_price` digits with `{price}`.
+2. Replace the row's `offer` digits with `{offer}`.
+3. Replace the row's `currency` with `{currency}`.
+
+When the offer equals the price, as on a sale at the player's offer, the number becomes `{price}`.
 
 ## Reply Schemas
 
@@ -139,9 +164,9 @@ The game sends each call's JSON schema as `response_format`, so decoding cannot 
 | Call    | Schema                                                        |
 |---------|---------------------------------------------------------------|
 | Extract | `intent` and `attitude` enums; `offer` a positive integer or null |
-| Render  | `message`, a string of the message characters                 |
+| Render  | `message`, a string of message characters and slots           |
 
-All fields are required. The message pattern is `^[一-鿿0-9，。、！？：；「」『』（）…—～]+$`: CJK ideographs, digits, and full-width punctuation.
+All fields are required. A message holds CJK ideographs, full-width punctuation `，。、！？：；「」『』（）…—～`, and the three slots; digits are left out, so a number can only come from a slot.
 
 The pattern blocks the foreign-script and Latin fragments a small model drifts into. It cannot block simplified characters, which share the CJK range.
 
@@ -178,24 +203,25 @@ A row of `train.csv`, `validation.csv`, or `test.csv` is one bargaining turn. Ea
 | `'offer' must be set only for intent 'offer'`       | Offer and intent disagree          |
 | `'action_price' must be set only for sell or counter` | Price and action disagree        |
 | `Threat must have attitude 'severe'`                | A threat with another attitude     |
+| `Message number {n} is neither the price nor the offer` | A number no slot can hold      |
 | `'previous_player' and 'previous_npc' must be set together` | Half a previous turn       |
 
 Required columns are all but `previous_player`, `previous_npc`, `offer`, and `action_price`.
 
 ### Emotion Table
 
-Emotion follows the attitude. A plain line that reaches a sale pleases the NPC.
+Emotion follows the attitude, with two exceptions. A plain line that reaches a sale pleases the NPC, and an NPC that leaves without anger has run out of patience.
 
-| Attitude         | Emotion   |
-|------------------|-----------|
-| `polite`         | `pleased` |
-| `plain`          | `neutral`, or `pleased` on `sell` |
-| `mild`           | `annoyed` |
-| `severe`, threat | `angry`   |
+| Attitude         | Emotion                                  |
+|------------------|------------------------------------------|
+| `polite`         | `pleased`, or `annoyed` on `leave`       |
+| `plain`          | `neutral`; `pleased` on `sell`; `annoyed` on `leave` |
+| `mild`           | `annoyed`                                |
+| `severe`, threat | `angry`                                  |
 
 ## Currency Swap
 
-Every occurrence of the row's `currency` in its line, message, and previous turn becomes the sample's currency. A negotiation keeps one currency, picked by item name.
+Every occurrence of the row's `currency` in its line and previous turn becomes the sample's currency; the render reply writes `{currency}` instead. A negotiation keeps one currency, picked by item name.
 
 | Split | Currencies                       |
 |-------|----------------------------------|
@@ -203,7 +229,7 @@ Every occurrence of the row's `currency` in its line, message, and previous turn
 | Train | 靈石 銀兩 代幣 寶石 點數         |
 | Test  | 信用點 星幣 能量幣                |
 
-Test currencies never appear in training, so test measures whether replies follow an unseen currency. Validation uses them too, so checkpoint selection rewards the same skill.
+Test currencies never appear in training, so test measures whether extract reads offers and render keeps the slot under an unseen currency. Validation uses them too, so checkpoint selection rewards the same skill.
 
 ## Rebalancing
 
@@ -228,6 +254,7 @@ The contract holds only if the game does its part. Each duty keeps a decision ou
 | Resolve              | Action and price come from the game's rules     |
 | Emotion              | The game maps attitude to emotion by the table  |
 | Friendship           | The game computes it from attitude and offer    |
+| Slots                | The game writes every slot before showing a line |
 
 ## Conversion
 

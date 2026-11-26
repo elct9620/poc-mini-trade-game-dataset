@@ -15,6 +15,9 @@ class Evaluation
   ##
   module Judge
     KNOWN_CURRENCIES = (Currency::TRAIN + Currency::TEST).freeze
+    # A currency word written right after a number slot replaces the {currency} slot. Elsewhere the same word can be
+    # an ordinary noun, such as 寶石 in 紅寶石軸承, so it is not counted.
+    CURRENCY_AFTER_SLOT = /\{(?:price|offer)\}(?:#{KNOWN_CURRENCIES.map { |word| Regexp.escape(word) }.join('|')})/
 
     module_function
 
@@ -30,17 +33,18 @@ class Evaluation
       { 'json_valid' => !actual.nil? }.merge(checks).merge('extract_match' => checks.values.all?)
     end
 
-    # Returns the render checks: the reply's message against the row's price and the prompt's currency.
-    def render(row, reply, currency)
+    # Returns the render checks: the reply's message against the slots the row's reference message holds.
+    # A currency word after a number slot is foreign, since the game writes the currency through {currency}.
+    def render(row, reply, _currency)
       message = parse_object(reply)&.dig('message')
       text = message.is_a?(String) ? message : nil
       {
         'json_valid' => !parse_object(reply).nil?,
         'message_clean' => !text.nil? && NpcSchema::MESSAGE_PATTERN.match?(text),
         'message_traditional' => !text.nil? && text.each_char.none? { |char| SIMPLIFIED_CHARACTERS.key?(char) },
-        'currency_foreign' => text.nil? || (KNOWN_CURRENCIES - [currency]).any? { |other| text.include?(other) },
-        'price_said' => row['action_price'].to_s.empty? ? nil : !text.nil? && text.include?(row['action_price'].to_s),
-        'currency_own' => row['message'].to_s.include?(row['currency'].to_s) ? !text.nil? && text.include?(currency) : nil
+        'currency_foreign' => text.nil? || CURRENCY_AFTER_SLOT.match?(text),
+        'price_said' => row['action_price'].to_s.empty? ? nil : !text.nil? && text.include?('{price}'),
+        'currency_own' => row['message'].to_s.include?(row['currency'].to_s) ? !text.nil? && text.include?('{currency}') : nil
       }
     end
 

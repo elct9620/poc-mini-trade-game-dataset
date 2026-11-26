@@ -9,10 +9,14 @@
 # - {docs/features/npc-calls.md}[docs/features/npc-calls.md]
 ##
 module NpcSchema
-  # Characters a message may use: CJK ideographs, digits, and full-width punctuation.
-  # Decoding then cannot emit the foreign-script or Latin fragments a small model drifts into.
-  MESSAGE_CHARACTERS = "一-鿿0-9，。、！？：；「」『』（）…—～"
-  MESSAGE_PATTERN = /\A[#{MESSAGE_CHARACTERS}]+\z/
+  # Slots the game fills in a render message; the model writes no number or currency word itself.
+  SLOTS = %w[{price} {offer} {currency}].freeze
+
+  # Characters a message may use besides slots: CJK ideographs and full-width punctuation. Digits are left out,
+  # so a number can only come from a slot, and the foreign-script fragments a small model drifts into cannot appear.
+  MESSAGE_CHARACTERS = "一-鿿，。、！？：；「」『』（）…—～"
+  SLOT_ALTERNATION = SLOTS.map { |slot| Regexp.escape(slot) }.join('|')
+  MESSAGE_PATTERN = /\A([#{MESSAGE_CHARACTERS}]|#{SLOT_ALTERNATION})+\z/
 
   EXTRACT = {
     'type' => 'object',
@@ -26,7 +30,9 @@ module NpcSchema
 
   RENDER = {
     'type' => 'object',
-    'properties' => { 'message' => { 'type' => 'string', 'pattern' => "^[#{MESSAGE_CHARACTERS}]+$" } },
+    'properties' => {
+      'message' => { 'type' => 'string', 'pattern' => "^([#{MESSAGE_CHARACTERS}]|#{SLOT_ALTERNATION})+$" }
+    },
     'required' => %w[message]
   }.freeze
 end

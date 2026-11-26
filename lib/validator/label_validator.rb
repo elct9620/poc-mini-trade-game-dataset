@@ -36,11 +36,18 @@ module Validator
       if row['intent'] == 'threat' && row['attitude'] != 'severe'
         raise ValidationError, "Threat must have attitude 'severe'"
       end
+      validate_message_numbers(row)
 
       true
     end
 
     private
+
+    # Render writes numbers only through the {price} and {offer} slots, so a message may name no other number.
+    def validate_message_numbers(row)
+      stray = row['message'].to_s.scan(/\d+/).find { |number| ![row['action_price'], row['offer']].include?(number) }
+      raise ValidationError, "Message number #{stray} is neither the price nor the offer" if stray
+    end
 
     def blank?(value)
       value.nil? || value.to_s.strip.empty?
