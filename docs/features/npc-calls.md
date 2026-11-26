@@ -132,6 +132,19 @@ The reply is the NPC's line only.
 {"message":"差太多了啦，4606銀幣，這已經很低了。"}
 ```
 
+## Reply Schemas
+
+The game sends each call's JSON schema as `response_format`, so decoding cannot leave the shape. `lib/npc_schema.rb` holds both, and the game and evaluation use the same ones.
+
+| Call    | Schema                                                        |
+|---------|---------------------------------------------------------------|
+| Extract | `intent` and `attitude` enums; `offer` a positive integer or null |
+| Render  | `message`, a string of the message characters                 |
+
+All fields are required. The message pattern is `^[一-鿿0-9，。、！？：；「」『』（）…—～]+$`: CJK ideographs, digits, and full-width punctuation.
+
+The pattern blocks the foreign-script and Latin fragments a small model drifts into. It cannot block simplified characters, which share the CJK range.
+
 ## Dataset Rows
 
 A row of `train.csv`, `validation.csv`, or `test.csv` is one bargaining turn. Each prompt field copies a column, except emotion.
